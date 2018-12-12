@@ -11,5 +11,10 @@ mkdir tmp
 diff tmp/nominal results/nominal
 sed -e '2d' tmp/nominal_status | diff - results/nominal_status
 
+# first kind of error: first test fail, then fix, then fail again
+../src/zebr0-icu -c error1.json -s tmp/error1_status || true
+diff tmp/error1 results/error1
+sed -e '2d' tmp/error1_status | diff - results/error1_status
+
 # cleans tmp directory
 rm -rf tmp
