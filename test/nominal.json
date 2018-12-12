@@ -1,10 +1,10 @@
 [
   {
-    "test": "[ -f tmp/nominal ] && echo 'second test ok' >> tmp/nominal",
+    "test": "[ -f tmp/nominal ] && echo 'test ok' >> tmp/nominal",
     "fix": "echo 'fix ok' > tmp/nominal"
   },
   {
-    "test": "echo 'third test ok' >> tmp/nominal",
+    "test": "echo 'second test ok' >> tmp/nominal",
     "fix": "false"
   }
 ]
