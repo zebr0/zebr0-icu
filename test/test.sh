@@ -7,9 +7,9 @@
 mkdir tmp
 
 # test nominal
-../src/zebr0-icu -c config.json -s tmp/status
+../src/zebr0-icu -c nominal.json -s tmp/nominal_status
 diff tmp/nominal results/nominal
-sed -e '2d' tmp/status | diff - results/status
+sed -e '2d' tmp/nominal_status | diff - results/nominal_status
 
 # cleans tmp directory
 rm -rf tmp
