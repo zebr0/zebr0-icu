@@ -16,5 +16,10 @@ sed -e '2d' tmp/nominal_status | diff - results/nominal_status
 diff tmp/error1 results/error1
 sed -e '2d' tmp/error1_status | diff - results/error1_status
 
+# second kind of error: first test fail, then fix fail
+../src/zebr0-icu -c error2.json -s tmp/error2_status || true
+diff tmp/error2 results/error2
+sed -e '2d' tmp/error2_status | diff - results/error2_status
+
 # cleans tmp directory
 rm -rf tmp

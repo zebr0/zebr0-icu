@@ -1,0 +1,6 @@
+[
+  {
+    "test": "echo 'test fail' >> tmp/error2 && false",
+    "fix": "echo 'fix fail' >> tmp/error2 && false"
+  }
+]
