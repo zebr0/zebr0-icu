@@ -6,11 +6,6 @@ import json
 import subprocess
 import sys
 
-argparser = argparse.ArgumentParser(description="")
-argparser.add_argument("-c", "--config-file", default="/etc/icu.conf", help="")
-argparser.add_argument("-s", "--status-file", default="/var/tmp/icu", help="")
-args = argparser.parse_args()
-
 
 def write_status_file(status):
     with open(args.status_file, "w") as status_file:
@@ -21,21 +16,21 @@ def write_status_file(status):
 
 
 def execute(command):
-    sp = subprocess.Popen(command, shell=True, stdout=sys.stdout, stderr=sys.stderr)
-    sp.wait()
-    return sp.returncode == 0
+    return subprocess.Popen(command, shell=True, stdout=sys.stdout, stderr=sys.stderr).wait() == 0
 
+
+argparser = argparse.ArgumentParser(description="")
+argparser.add_argument("-c", "--config-file", default="/etc/icu.conf", help="")
+argparser.add_argument("-s", "--status-file", default="/var/tmp/icu", help="")
+args = argparser.parse_args()
 
 with open(args.config_file, "r") as config_file:
     config = json.load(config_file)
 
 for step in config:
-    test_succeeded = execute(step.get("test"))
-    if not test_succeeded:
+    if not execute(step.get("test")):
         write_status_file("fixing")
-        fix_succeeded = execute(step.get("fix"))
-        second_test_succeeded = execute(step.get("test"))
-        if not fix_succeeded or not second_test_succeeded:
+        if not execute(step.get("fix")) or not execute(step.get("test")):
             write_status_file("ko")
             exit(1)
 
