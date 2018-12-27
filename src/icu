@@ -21,9 +21,9 @@ def execute(command):
     return subprocess.Popen(command, shell=True, stdout=sys.stdout, stderr=sys.stderr).wait() == 0
 
 
-argparser = argparse.ArgumentParser(description="")
-argparser.add_argument("-c", "--config-file", default="/etc/icu.conf", help="")
-argparser.add_argument("-s", "--status-file", default="/var/tmp/icu", help="")
+argparser = argparse.ArgumentParser(description="Minimalist self-healing.")
+argparser.add_argument("-c", "--config-file", default="/etc/icu.conf", help="path to the yaml or json configuration file (default: /etc/icu.conf)")
+argparser.add_argument("-s", "--status-file", default="/var/tmp/icu.json", help="path to the produced status file (default: /var/tmp/icu.json)")
 args = argparser.parse_args()
 
 with open(args.config_file, "r") as config_file:
