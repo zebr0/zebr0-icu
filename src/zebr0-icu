@@ -6,6 +6,8 @@ import json
 import subprocess
 import sys
 
+import yaml
+
 
 def write_status_file(status):
     with open(args.status_file, "w") as status_file:
@@ -25,7 +27,7 @@ argparser.add_argument("-s", "--status-file", default="/var/tmp/icu", help="")
 args = argparser.parse_args()
 
 with open(args.config_file, "r") as config_file:
-    config = json.load(config_file)
+    config = yaml.load(config_file)
 
 for step in config:
     if not execute(step.get("test")):

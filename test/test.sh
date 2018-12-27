@@ -11,9 +11,14 @@ clean_diff() {
 }
 
 # nominal test: first test fail, then fix, then ok, then second test ok
-../src/zebr0-icu -c nominal.json -s tmp/nominal_status
-diff tmp/nominal results/nominal
-clean_diff nominal_status
+../src/zebr0-icu -c nominal.json -s tmp/nominal_json_status
+diff tmp/nominal_json results/nominal_json
+clean_diff nominal_json_status
+
+# nominal test, with yaml conf
+../src/zebr0-icu -c nominal.yaml -s tmp/nominal_yaml_status
+diff tmp/nominal_yaml results/nominal_yaml
+clean_diff nominal_yaml_status
 
 # first kind of error: first test fail, then fix, then fail again
 ../src/zebr0-icu -c error1.json -s tmp/error1_status || true
