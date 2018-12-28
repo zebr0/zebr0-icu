@@ -30,5 +30,11 @@ clean_diff error1_status
 diff tmp/error2 results/error2
 clean_diff error2_status
 
+echo "../src/icu -c fixing.yaml -s tmp/fixing_status" | at now
+sleep 1
+clean_diff fixing_status
+sleep 2
+diff tmp/fixing results/fixing
+
 # cleans tmp directory
 rm -rf tmp
