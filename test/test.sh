@@ -11,26 +11,26 @@ clean_diff() {
 }
 
 # nominal test: first test fail, then fix, then ok, then second test ok
-../src/icu -c nominal.json -s tmp/nominal_json_status
+../src/heal -c nominal.json -s tmp/nominal_json_status
 diff tmp/nominal_json results/nominal_json
 clean_diff nominal_json_status
 
 # nominal test, with yaml conf
-../src/icu -c nominal.yaml -s tmp/nominal_yaml_status
+../src/heal -c nominal.yaml -s tmp/nominal_yaml_status
 diff tmp/nominal_yaml results/nominal_yaml
 clean_diff nominal_yaml_status
 
 # first kind of error: first test fail, then fix, then fail again
-../src/icu -c error1.json -s tmp/error1_status || true
+../src/heal -c error1.json -s tmp/error1_status || true
 diff tmp/error1 results/error1
 clean_diff error1_status
 
 # second kind of error: first test fail, then fix fail
-../src/icu -c error2.json -s tmp/error2_status || true
+../src/heal -c error2.json -s tmp/error2_status || true
 diff tmp/error2 results/error2
 clean_diff error2_status
 
-echo "../src/icu -c fixing.yaml -s tmp/fixing_status" | at now
+echo "../src/heal -c fixing.yaml -s tmp/fixing_status" | at now
 sleep 1
 clean_diff fixing_status
 sleep 2

@@ -22,8 +22,8 @@ def execute(command):
 
 
 argparser = argparse.ArgumentParser(description="Minimalist self-healing.")
-argparser.add_argument("-c", "--config-file", default="/etc/icu.conf", help="path to the yaml or json configuration file (default: /etc/icu.conf)")
-argparser.add_argument("-s", "--status-file", default="/var/tmp/icu.json", help="path to the produced status file (default: /var/tmp/icu.json)")
+argparser.add_argument("-c", "--config-file", default="/etc/heal.conf", help="path to the yaml or json configuration file (default: /etc/heal.conf)")
+argparser.add_argument("-s", "--status-file", default="/var/tmp/status.json", help="path to the produced status file (default: /var/tmp/status.json)")
 args = argparser.parse_args()
 
 with open(args.config_file, "r") as config_file:

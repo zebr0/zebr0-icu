@@ -1,11 +1,11 @@
-Source: icu
+Source: heal
 Section: utils
 Priority: optional
 Maintainer: Thomas JOUANNOT (Mazerty) <mazerty@gmail.com>
 Build-Depends: debhelper (>=9)
 Standards-Version: 3.9.7
 
-Package: icu
+Package: heal
 Architecture: all
 Depends: ${misc:Depends}, python3, python3-yaml
 Description: Minimalist self-healing

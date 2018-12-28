@@ -1,6 +1,6 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: icu
-Source: https://github.com/zebr0/icu
+Upstream-Name: heal
+Source: https://github.com/zebr0/heal
 
 Files: *
 Copyright: 2018 zebr0
