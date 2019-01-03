@@ -1,0 +1,12 @@
+[Unit]
+Description=Minimalist self-healing
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/heal
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
