@@ -27,7 +27,7 @@ argparser.add_argument("-s", "--status-file", default="/var/tmp/status.json", he
 args = argparser.parse_args()
 
 with open(args.config_file, "r") as config_file:
-    config = yaml.load(config_file)
+    config = yaml.load(config_file, Loader=yaml.BaseLoader)  # uses the yaml baseloader to preserve all strings
 
 for step in config:
     if not execute(step.get("test")):

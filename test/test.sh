@@ -36,5 +36,8 @@ clean_diff fixing_status
 sleep 2
 diff tmp/fixing results/fixing
 
+# error when using the default yaml loader
+../src/heal -c error-loader.yaml -s /dev/null
+
 # cleans tmp directory
 rm -rf tmp
