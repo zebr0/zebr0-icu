@@ -1,3 +1,10 @@
+heal (0.2.0-0ubuntu1) bionic; urgency=medium
+
+  * Added service file
+  * Now reads the configuration from a directory
+
+ -- Thomas JOUANNOT (Mazerty) <mazerty@gmail.com>  Sat, 30 Mar 2019 09:05:00 +0100
+
 heal (0.1.0-0ubuntu1) bionic; urgency=medium
 
   * Initial release
