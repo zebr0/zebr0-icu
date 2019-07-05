@@ -31,10 +31,19 @@ if os.path.isdir(args.directory):
     for filename in sorted(os.listdir(args.directory)):
         with open(os.path.join(args.directory, filename)) as file:
             for step in yaml.load(file, Loader=yaml.BaseLoader):  # uses the yaml baseloader to preserve all strings
-                if not execute(step.get("test")):
+                test = step.get("test")
+                fix = step.get("fix")
+
+                print("test: " + test)
+                if not execute(test):
                     write_output("fixing")
-                    if not execute(step.get("fix")) or not execute(step.get("test")):
+                    print("test failed! fix: " + fix)
+                    execute(fix)
+
+                    print("test again: " + test)
+                    if not execute(test):
                         write_output("ko")
+                        print("fix failed!")
                         exit(1)
 
-write_output("ok")
+                write_output("ok")

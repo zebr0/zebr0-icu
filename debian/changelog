@@ -1,3 +1,9 @@
+heal (0.3.0-0ubuntu1) bionic; urgency=medium
+
+  * Added logs
+
+ -- Thomas JOUANNOT (Mazerty) <mazerty@gmail.com>  Fri, 05 Jul 2019 13:40:00 +0100
+
 heal (0.2.0-0ubuntu1) bionic; urgency=medium
 
   * Added service file
