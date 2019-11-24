@@ -1,4 +1,5 @@
 {
   "utc": "yyyy-mm-ddThh:mm:ss.mmmmmm",
-  "status": "ko"
+  "status": "ko",
+  "modes": []
 }

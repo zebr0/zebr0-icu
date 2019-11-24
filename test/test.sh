@@ -40,5 +40,10 @@ diff tmp/fixing results/fixing
 # error when using the default yaml loader
 ../src/heal -d error_loader_yaml -o /dev/null
 
+# testing modes
+../src/heal -d modes -o tmp/modes_status
+diff tmp/modes results/modes
+clean_diff modes_status
+
 # cleans tmp directory
 rm -rf tmp

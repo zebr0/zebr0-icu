@@ -1,0 +1,9 @@
+---
+- test: "echo 'default' >> tmp/modes"
+  fix: "false"
+- test: "echo 'mode_1' >> tmp/modes"
+  fix: "false"
+  mode: "mode_1"
+- test: "echo 'mode_2' >> tmp/modes"
+  fix: "false"
+  mode: "mode_2"
