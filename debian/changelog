@@ -1,3 +1,9 @@
+heal (0.4.0-0ubuntu1) bionic; urgency=medium
+
+  * Added modes
+
+ -- Thomas JOUANNOT (Mazerty) <mazerty@gmail.com>  Sat, 04 Jan 2020 17:00:00 +0100
+
 heal (0.3.0-0ubuntu1) bionic; urgency=medium
 
   * Added logs
