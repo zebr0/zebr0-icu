@@ -5,8 +5,8 @@ import datetime
 import json
 import os.path
 import subprocess
-import sys
 
+import sys
 import yaml
 
 
@@ -42,21 +42,34 @@ if os.path.isdir(args.directory):
                     steps.append(step)
 
 for step in steps:
-    test = step.get("test")
-    fix = step.get("fix")
+    _if = step.get("if")
+    _then = step.get("then")
+    _else = step.get("else")
     mode = step.get("mode")
 
     if not mode or mode in modes:
-        print("test: " + test)
-        if not execute(test):
-            write_output("fixing")
-            print("test failed! fix: " + fix)
-            execute(fix)
+        print("test: " + _if)
+        if execute(_if):
+            if _then:
+                write_output("fixing")
+                print("test failed! fix: " + _then)
+                execute(_then)
 
-            print("test again: " + test)
-            if not execute(test):
-                write_output("ko")
-                print("fix failed!")
-                exit(1)
+                print("test again: " + _if)
+                if execute(_if):
+                    write_output("ko")
+                    print("fix failed!")
+                    exit(1)
+        else:
+            if _else:
+                write_output("fixing")
+                print("test failed! fix: " + _else)
+                execute(_else)
+
+                print("test again: " + _if)
+                if not execute(_if):
+                    write_output("ko")
+                    print("fix failed!")
+                    exit(1)
 
         write_output("ok")

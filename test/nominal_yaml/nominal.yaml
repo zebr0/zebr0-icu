@@ -1,5 +1,5 @@
 ---
-- test: "[ -f tmp/nominal_yaml ] && echo 'test ok' >> tmp/nominal_yaml"
-  fix: "echo 'fix ok' > tmp/nominal_yaml"
-- test: "echo 'second test ok' >> tmp/nominal_yaml"
-  fix: "false"
+- if: "[ -f tmp/nominal_yaml ] && echo 'test ok' >> tmp/nominal_yaml"
+  else: "echo 'fix ok' > tmp/nominal_yaml"
+- if: "echo 'second test ok' >> tmp/nominal_yaml"
+  else: "false"
