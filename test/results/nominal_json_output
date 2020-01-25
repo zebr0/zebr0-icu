@@ -1,0 +1,4 @@
+test: [ -f tmp/nominal_json ] && echo 'test ok' >> tmp/nominal_json
+test failed! fix: echo 'fix ok' > tmp/nominal_json
+test again: [ -f tmp/nominal_json ] && echo 'test ok' >> tmp/nominal_json
+test: echo 'second test ok' >> tmp/nominal_json

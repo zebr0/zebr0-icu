@@ -1,0 +1,4 @@
+test: echo 'test fail' >> tmp/error1 && false
+test failed! fix: true
+test again: echo 'test fail' >> tmp/error1 && false
+fix failed!

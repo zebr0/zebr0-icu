@@ -1,0 +1,4 @@
+test: [ -f tmp/nominal_yaml ] && echo 'test ok' >> tmp/nominal_yaml
+test failed! fix: echo 'fix ok' > tmp/nominal_yaml
+test again: [ -f tmp/nominal_yaml ] && echo 'test ok' >> tmp/nominal_yaml
+test: echo 'second test ok' >> tmp/nominal_yaml
