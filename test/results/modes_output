@@ -1,0 +1,2 @@
+test: echo 'default' >> tmp/modes
+test: echo 'mode_1' >> tmp/modes
