@@ -1,4 +1,8 @@
 ---
+- if: "true"
+  then-mode: "mode_1"
+- if: "false"
+  then-mode: "mode_2"
 - if-not: "echo 'default' >> tmp/modes"
   then: "false"
 - if-not: "echo 'mode_1' >> tmp/modes"
