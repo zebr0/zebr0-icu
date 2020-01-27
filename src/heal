@@ -28,6 +28,8 @@ argparser.add_argument("-d", "--directory", default="/etc/heal.conf.d", help="pa
 argparser.add_argument("-o", "--output", default="/var/tmp/status.json", help="path to the output status file (default: /var/tmp/status.json)")
 args = argparser.parse_args()
 
+actions = {"then", "else", "then-mode", "else-mode", "then-fixing", "else-fixing", "then-ko", "else-ko"}
+
 steps = []
 modes = []
 
@@ -35,6 +37,9 @@ if os.path.isdir(args.directory):
     for filename in sorted(os.listdir(args.directory)):
         with open(os.path.join(args.directory, filename)) as file:
             for step in yaml.load(file, Loader=yaml.BaseLoader):  # uses the yaml baseloader to preserve all strings
+                if not step.get("if") or len(actions.intersection(step.keys())) != 1:
+                    print("error: at least one step is missing an 'if' key or hasn't exactly one key amongst " + str(sorted(actions)))
+                    exit(1)
                 if step.get("then-mode"):
                     if execute(step.get("if")):
                         modes.append(step.get("then-mode"))

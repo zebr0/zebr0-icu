@@ -51,5 +51,9 @@ diff tmp/modes results/modes
 clean_diff modes_status
 diff tmp/modes_output results/modes_output
 
+# validation error
+../src/heal -d error3_json -o /dev/null > tmp/error3_output || true
+diff tmp/error3_output results/error3_output
+
 # cleans tmp directory
 rm -rf tmp
