@@ -45,7 +45,7 @@ current_modes = [mode.get("then-mode") for mode in modes if execute(mode.get("if
 for step in steps:
     if_not = step.get("if-not")
     then = step.get("then")
-    mode = step.get("mode")
+    mode = step.get("and-if-mode")
 
     if not mode or mode in current_modes:
         print("test: " + if_not)
