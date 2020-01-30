@@ -28,7 +28,7 @@ argparser.add_argument("-d", "--directory", default="/etc/heal.conf.d", help="pa
 argparser.add_argument("-o", "--output", default="/var/tmp/status.json", help="path to the output status file (default: /var/tmp/status.json)")
 args = argparser.parse_args()
 
-actions = {"then", "else", "then-mode", "else-mode", "then-fixing", "else-fixing", "then-ko", "else-ko"}
+actions = {"then", "else", "then-mode", "else-mode", "then-status", "else-status"}
 
 steps = []
 modes = []
