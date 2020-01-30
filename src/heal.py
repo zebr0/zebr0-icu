@@ -6,8 +6,10 @@ import subprocess
 import sys
 import yaml
 
+actions = {"then", "else", "then-mode", "else-mode", "then-status", "else-status"}
 
-def write_output(status, output):
+
+def write_output(output, status, modes):
     with open(output, "w") as output:
         json.dump({
             "utc": datetime.datetime.utcnow().isoformat(),
@@ -20,13 +22,10 @@ def execute(command):
     return subprocess.Popen(command, shell=True, stdout=sys.stdout, stderr=sys.stderr).wait() == 0
 
 
-actions = {"then", "else", "then-mode", "else-mode", "then-status", "else-status"}
-
-steps = []
-modes = []
-
-
 def heal(directory, output):
+    steps = []
+    modes = []
+
     if os.path.isdir(directory):
         for filename in sorted(os.listdir(directory)):
             with open(os.path.join(directory, filename)) as file:
@@ -50,25 +49,25 @@ def heal(directory, output):
             print("test: " + _if)
             if execute(_if):
                 if _then:
-                    write_output("fixing", output)
+                    write_output(output, "fixing", modes)
                     print("test failed! fix: " + _then)
                     execute(_then)
 
                     print("test again: " + _if)
                     if execute(_if):
-                        write_output("ko", output)
+                        write_output(output, "ko", modes)
                         print("fix failed!")
                         exit(1)
             else:
                 if _else:
-                    write_output("fixing", output)
+                    write_output(output, "fixing", modes)
                     print("test failed! fix: " + _else)
                     execute(_else)
 
                     print("test again: " + _if)
                     if not execute(_if):
-                        write_output("ko", output)
+                        write_output(output, "ko", modes)
                         print("fix failed!")
                         exit(1)
 
-            write_output("ok", output)
+            write_output(output, "ok", modes)
