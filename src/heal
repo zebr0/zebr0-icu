@@ -9,4 +9,4 @@ argparser.add_argument("-d", "--directory", default="/etc/heal.conf.d", help="pa
 argparser.add_argument("-o", "--output", default="/var/tmp/status.json", help="path to the output status file (default: /var/tmp/status.json)")
 args = argparser.parse_args()
 
-heal.blibli(args)
+heal.heal(args.directory, args.output)
