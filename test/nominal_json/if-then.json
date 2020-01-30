@@ -1,13 +1,5 @@
 [
   {
-    "if": "[ -f tmp/nominal_json ] && echo 'test ok' >> tmp/nominal_json",
-    "else": "echo 'fix ok' > tmp/nominal_json"
-  },
-  {
-    "if": "echo 'second test ok' >> tmp/nominal_json",
-    "else": "false"
-  },
-  {
     "if": "! grep then tmp/nominal_json || ! echo 'third test ok' >> tmp/nominal_json",
     "then": "echo 'then fix ok' >> tmp/nominal_json"
   },
