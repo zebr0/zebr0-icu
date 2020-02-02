@@ -11,15 +11,23 @@ def execute(command):
     return subprocess.Popen(command, shell=True, stdout=sys.stdout, stderr=sys.stderr).wait() == 0
 
 
-steps = []
-modes = []
-
-
 def read(directory):
     if os.path.isdir(directory):
         for filename in sorted(os.listdir(directory)):
             with open(os.path.join(directory, filename)) as file:
                 yield from yaml.load(file, Loader=yaml.BaseLoader)  # uses the yaml baseloader to preserve all strings
+
+
+def split(items):
+    steps, modes = [], []
+
+    for item in items:
+        if item.get("then-mode"):
+            modes.append(item)
+        else:
+            steps.append(item)
+
+    return modes, steps
 
 
 def blibli(directory, output):
@@ -31,11 +39,7 @@ def blibli(directory, output):
                 "modes": current_modes
             }, outputfile, indent=2)
 
-    for item in read(directory):
-        if item.get("then-mode"):
-            modes.append(item)
-        else:
-            steps.append(item)
+    modes, steps = split(read(directory))
 
     current_modes = [mode.get("then-mode") for mode in modes if execute(mode.get("if"))]
 
