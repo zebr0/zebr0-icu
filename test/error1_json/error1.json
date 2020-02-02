@@ -1,6 +1,6 @@
 [
   {
-    "test": "echo 'test fail' >> tmp/error1 && false",
-    "fix": "true"
+    "if-not": "echo 'test fail' >> tmp/error1 && false",
+    "then": "true"
   }
 ]

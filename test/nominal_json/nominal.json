@@ -1,10 +1,10 @@
 [
   {
-    "test": "[ -f tmp/nominal_json ] && echo 'test ok' >> tmp/nominal_json",
-    "fix": "echo 'fix ok' > tmp/nominal_json"
+    "if-not": "[ -f tmp/nominal_json ] && echo 'test ok' >> tmp/nominal_json",
+    "then": "echo 'fix ok' > tmp/nominal_json"
   },
   {
-    "test": "echo 'second test ok' >> tmp/nominal_json",
-    "fix": "false"
+    "if-not": "echo 'second test ok' >> tmp/nominal_json",
+    "then": "false"
   }
 ]
