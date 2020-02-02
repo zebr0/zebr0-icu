@@ -1,6 +1,3 @@
-#!/usr/bin/python3 -u
-
-import argparse
 import datetime
 import json
 import os.path
@@ -22,11 +19,6 @@ def write_output(status):
 def execute(command):
     return subprocess.Popen(command, shell=True, stdout=sys.stdout, stderr=sys.stderr).wait() == 0
 
-
-argparser = argparse.ArgumentParser(description="Minimalist self-healing.")
-argparser.add_argument("-d", "--directory", default="/etc/heal.conf.d", help="path to the yaml or json configuration directory (default: /etc/heal.conf.d)")
-argparser.add_argument("-o", "--output", default="/var/tmp/status.json", help="path to the output status file (default: /var/tmp/status.json)")
-args = argparser.parse_args()
 
 steps = []
 modes = []
