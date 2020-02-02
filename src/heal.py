@@ -15,6 +15,13 @@ steps = []
 modes = []
 
 
+def read(directory):
+    if os.path.isdir(directory):
+        for filename in sorted(os.listdir(directory)):
+            with open(os.path.join(directory, filename)) as file:
+                yield from yaml.load(file, Loader=yaml.BaseLoader)  # uses the yaml baseloader to preserve all strings
+
+
 def blibli(directory, output):
     def write_output(status):
         with open(output, "w") as outputfile:
@@ -24,14 +31,11 @@ def blibli(directory, output):
                 "modes": current_modes
             }, outputfile, indent=2)
 
-    if os.path.isdir(directory):
-        for filename in sorted(os.listdir(directory)):
-            with open(os.path.join(directory, filename)) as file:
-                for item in yaml.load(file, Loader=yaml.BaseLoader):  # uses the yaml baseloader to preserve all strings
-                    if item.get("then-mode"):
-                        modes.append(item)
-                    else:
-                        steps.append(item)
+    for item in read(directory):
+        if item.get("then-mode"):
+            modes.append(item)
+        else:
+            steps.append(item)
 
     current_modes = [mode.get("then-mode") for mode in modes if execute(mode.get("if"))]
 
