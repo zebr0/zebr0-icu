@@ -15,18 +15,18 @@ steps = []
 modes = []
 
 
-def blibli(args):
+def blibli(directory, output):
     def write_output(status):
-        with open(args.output, "w") as output:
+        with open(output, "w") as outputfile:
             json.dump({
                 "utc": datetime.datetime.utcnow().isoformat(),
                 "status": status,
                 "modes": current_modes
-            }, output, indent=2)
+            }, outputfile, indent=2)
 
-    if os.path.isdir(args.directory):
-        for filename in sorted(os.listdir(args.directory)):
-            with open(os.path.join(args.directory, filename)) as file:
+    if os.path.isdir(directory):
+        for filename in sorted(os.listdir(directory)):
+            with open(os.path.join(directory, filename)) as file:
                 for item in yaml.load(file, Loader=yaml.BaseLoader):  # uses the yaml baseloader to preserve all strings
                     if item.get("then-mode"):
                         modes.append(item)
