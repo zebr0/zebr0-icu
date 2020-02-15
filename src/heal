@@ -5,8 +5,8 @@ import argparse
 import heal
 
 argparser = argparse.ArgumentParser(description="Minimalist self-healing.")
-argparser.add_argument("-d", "--directory", default="/etc/heal.conf.d", help="path to the yaml or json configuration directory (default: /etc/heal.conf.d)")
-argparser.add_argument("-o", "--output", default="/var/tmp/status.json", help="path to the output status file (default: /var/tmp/status.json)")
+argparser.add_argument("-c", "--configuration-directory", default="/etc/heal.conf.d", help="path to the yaml or json configuration directory (default: /etc/heal.conf.d)")
+argparser.add_argument("-s", "--status-file", default="/var/tmp/status.json", help="path to the output status file (default: /var/tmp/status.json)")
 args = argparser.parse_args()
 
-heal.blibli(args.directory, args.output)
+heal.blibli(args.configuration_directory, args.status_file)
