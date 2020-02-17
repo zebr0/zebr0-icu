@@ -1,12 +1,28 @@
 #!/usr/bin/python3 -u
 
 import argparse
+import os
 
 import heal
 
+
+def is_directory(value):
+    if not os.path.isdir(value):
+        raise argparse.ArgumentTypeError("not a directory")
+    return value
+
+
+def is_writable(value):
+    try:
+        open(value, "w").close()
+    except IOError:
+        raise argparse.ArgumentTypeError("not a writable file")
+    return value
+
+
 argparser = argparse.ArgumentParser(description="Minimalist self-healing.")
-argparser.add_argument("-c", "--configuration-directory", default="/etc/heal.conf.d", help="path to the yaml or json configuration directory (default: /etc/heal.conf.d)")
-argparser.add_argument("-s", "--status-file", default="/var/tmp/status.json", help="path to the output status file (default: /var/tmp/status.json)")
+argparser.add_argument("-c", "--configuration-directory", default="/etc/heal.conf.d", type=is_directory, help="path to the yaml or json configuration directory (default: /etc/heal.conf.d)")
+argparser.add_argument("-s", "--status-file", default="/var/tmp/status.json", type=is_writable, help="path to the output status file (default: /var/tmp/status.json)")
 args = argparser.parse_args()
 
 heal.blibli(args.configuration_directory, args.status_file)
