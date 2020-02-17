@@ -2,6 +2,8 @@
 
 import argparse
 import os
+import signal
+import threading
 
 import heal
 
@@ -25,4 +27,16 @@ argparser.add_argument("-c", "--configuration-directory", default="/etc/heal.con
 argparser.add_argument("-s", "--status-file", default="/var/tmp/status.json", type=is_writable, help="path to the output status file (default: /var/tmp/status.json)")
 args = argparser.parse_args()
 
-heal.blibli(args.configuration_directory, args.status_file)
+event = threading.Event()
+
+
+# handles signals properly
+def shutdown(signum, frame):
+    print("exit")
+    event.set()
+
+
+for sig in [signal.SIGINT, signal.SIGTERM]:
+    signal.signal(sig, shutdown)
+
+heal.Blabla(event).start()

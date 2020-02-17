@@ -2,6 +2,7 @@ import datetime
 import json
 import os.path
 import subprocess
+import threading
 
 import sys
 import yaml
@@ -62,3 +63,14 @@ def blibli(directory, output):
                     exit(1)
 
             write_output("ok")
+
+
+class Blabla(threading.Thread):
+    def __init__(self, event):
+        super().__init__()
+        self.event = event
+
+    def run(self):
+        while not self.event.is_set():
+            print("wait")
+            self.event.wait(10)
