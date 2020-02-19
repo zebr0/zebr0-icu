@@ -66,9 +66,9 @@ def blibli(directory, output):
 
 
 class Blabla(threading.Thread):
-    def __init__(self, event):
+    def __init__(self):
         super().__init__()
-        self.event = event
+        self.event = threading.Event()
 
     def run(self):
         while not self.event.is_set():
