@@ -65,12 +65,16 @@ def blibli(directory, output):
             write_output("ok")
 
 
-class Blabla(threading.Thread):
+class LoopThread(threading.Thread):
     def __init__(self):
         super().__init__()
-        self.event = threading.Event()
+        self.stop = threading.Event()
 
     def run(self):
-        while not self.event.is_set():
-            print("wait")
-            self.event.wait(10)
+        while not self.stop.is_set():
+            self.loop()
+            self.stop.wait(10)
+
+    def loop(self):
+        pass
+

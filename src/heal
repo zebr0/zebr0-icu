@@ -31,10 +31,10 @@ args = argparser.parse_args()
 # handles signals properly
 def shutdown(signum, frame):
     print("exit")
-    [thread.event.set() for thread in threading.enumerate() if isinstance(thread, heal.Blabla)]
+    [thread.stop.set() for thread in threading.enumerate() if isinstance(thread, heal.LoopThread)]
 
 
 for sig in [signal.SIGINT, signal.SIGTERM]:
     signal.signal(sig, shutdown)
 
-heal.Blabla().start()
+heal.LoopThread().start()
