@@ -85,6 +85,7 @@ class StepThread(LoopThread):
 
 
 class MasterThread(LoopThread):
-    def __init__(self, ns):
+    def __init__(self, configuration_directory, status_file):
         super().__init__()
-        self.ns = ns
+        self.configuration_directory = configuration_directory
+        self.status_file = status_file
