@@ -37,4 +37,4 @@ def shutdown(signum, frame):
 for sig in [signal.SIGINT, signal.SIGTERM]:
     signal.signal(sig, shutdown)
 
-heal.LoopThread().start()
+heal.MasterThread(args).start()

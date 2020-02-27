@@ -78,3 +78,8 @@ class LoopThread(threading.Thread):
     def loop(self):
         pass
 
+
+class MasterThread(LoopThread):
+    def __init__(self, ns):
+        super().__init__()
+        self.ns = ns
