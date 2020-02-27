@@ -13,10 +13,9 @@ def execute(command):
 
 
 def read(directory):
-    if os.path.isdir(directory):
-        for filename in sorted(os.listdir(directory)):
-            with open(os.path.join(directory, filename)) as file:
-                yield from yaml.load(file, Loader=yaml.BaseLoader)  # uses the yaml baseloader to preserve all strings
+    for filename in os.listdir(directory):
+        with open(os.path.join(directory, filename)) as file:
+            yield from yaml.load(file, Loader=yaml.BaseLoader)  # uses the yaml baseloader to preserve all strings
 
 
 def split(items):
