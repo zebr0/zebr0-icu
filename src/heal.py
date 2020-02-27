@@ -79,6 +79,11 @@ class LoopThread(threading.Thread):
         pass
 
 
+class StepThread(LoopThread):
+    def __init__(self):
+        super().__init__()
+
+
 class MasterThread(LoopThread):
     def __init__(self, ns):
         super().__init__()
