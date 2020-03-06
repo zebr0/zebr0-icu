@@ -24,6 +24,12 @@ def get_current_modes(items):
             and execute(item.get("if"))]
 
 
+def get_current_steps(items, modes):
+    return [item for item in items
+            if not item.get("then-mode")  # steps
+            and (not item.get("and-if-mode") or item.get("and-if-mode") in modes)]
+
+
 def split(items):
     steps, modes = [], []
 
@@ -98,3 +104,4 @@ class MasterThread(LoopThread):
     def loop(self):
         items = read(self.configuration_directory)
         modes = get_current_modes(items)
+        steps = get_current_steps(items, modes)
