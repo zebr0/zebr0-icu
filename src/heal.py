@@ -18,14 +18,14 @@ def read(directory):
             yield from yaml.load(file, Loader=yaml.BaseLoader)  # uses the yaml baseloader to preserve all strings
 
 
-def get_current_modes(items):
-    return [item.get("then-mode") for item in items
+def get_current_modes(configuration):
+    return [item.get("then-mode") for item in configuration
             if item.get("then-mode")  # modes
             and execute(item.get("if"))]
 
 
-def get_current_steps(items, modes):
-    return [item for item in items
+def get_current_steps(configuration, modes):
+    return [item for item in configuration
             if not item.get("then-mode")  # steps
             and (not item.get("and-if-mode") or item.get("and-if-mode") in modes)]
 
@@ -102,6 +102,6 @@ class MasterThread(LoopThread):
         self.status_file = status_file
 
     def loop(self):
-        items = read(self.configuration_directory)
-        modes = get_current_modes(items)
-        steps = get_current_steps(items, modes)
+        configuration = read(self.configuration_directory)
+        modes = get_current_modes(configuration)
+        steps = get_current_steps(configuration, modes)
