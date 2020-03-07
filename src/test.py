@@ -22,11 +22,10 @@ class TestCase(unittest.TestCase):
     def test_get_current_modes(self):
         self.assertListEqual(heal.get_current_modes(CONFIGURATION), ["mode_1"])
 
-    def test_get_current_steps(self):
-        self.assertListEqual(heal.get_current_steps(CONFIGURATION, ["mode_1"]), [
-            {"if-not": "echo 'default' >> tmp/modes", "then": "false"},
-            {"if-not": "echo 'mode_1' >> tmp/modes", "and-if-mode": "mode_1", "then": "false"}
-        ])
+    def test_get_expected_threads(self):
+        steps = [thread.step for thread in heal.get_expected_threads(CONFIGURATION, ["mode_1"]) if isinstance(thread, heal.StepThread)]
+        self.assertListEqual(steps, [{"if-not": "echo 'default' >> tmp/modes", "then": "false"},
+                                     {"if-not": "echo 'mode_1' >> tmp/modes", "and-if-mode": "mode_1", "then": "false"}])
 
 
 unittest.main(verbosity=2)

@@ -24,8 +24,8 @@ def get_current_modes(configuration):
             and execute(item.get("if"))]
 
 
-def get_current_steps(configuration, modes):
-    return [item for item in configuration
+def get_expected_threads(configuration, modes):
+    return [StepThread(item) for item in configuration
             if not item.get("then-mode")  # steps
             and (not item.get("and-if-mode") or item.get("and-if-mode") in modes)]
 
@@ -91,8 +91,9 @@ class LoopThread(threading.Thread):
 
 
 class StepThread(LoopThread):
-    def __init__(self):
+    def __init__(self, step):
         super().__init__()
+        self.step = step
 
 
 class MasterThread(LoopThread):
@@ -104,4 +105,4 @@ class MasterThread(LoopThread):
     def loop(self):
         configuration = read(self.configuration_directory)
         modes = get_current_modes(configuration)
-        steps = get_current_steps(configuration, modes)
+        steps = get_expected_threads(configuration, modes)
