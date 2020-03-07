@@ -12,7 +12,7 @@ def execute(command):
     return subprocess.Popen(command, shell=True, stdout=sys.stdout, stderr=sys.stderr).wait() == 0
 
 
-def read(directory):
+def read_configuration(directory):
     for filename in os.listdir(directory):
         with open(os.path.join(directory, filename)) as file:
             yield from yaml.load(file, Loader=yaml.BaseLoader)  # uses the yaml baseloader to preserve all strings
@@ -24,10 +24,10 @@ def get_current_modes(configuration):
             and execute(item.get("if"))]
 
 
-def get_expected_threads(configuration, modes):
+def get_expected_threads(configuration, current_modes):
     return [StepThread(item) for item in configuration
             if not item.get("then-mode")  # steps
-            and (not item.get("and-if-mode") or item.get("and-if-mode") in modes)]
+            and (not item.get("and-if-mode") or item.get("and-if-mode") in current_modes)]
 
 
 def split(items):
@@ -51,7 +51,7 @@ def blibli(directory, output):
                 "modes": current_modes
             }, outputfile, indent=2)
 
-    modes, steps = split(read(directory))
+    modes, steps = split(read_configuration(directory))
 
     current_modes = [mode.get("then-mode") for mode in modes if execute(mode.get("if"))]
 
@@ -103,6 +103,6 @@ class MasterThread(LoopThread):
         self.status_file = status_file
 
     def loop(self):
-        configuration = read(self.configuration_directory)
-        modes = get_current_modes(configuration)
-        steps = get_expected_threads(configuration, modes)
+        configuration = read_configuration(self.configuration_directory)
+        current_modes = get_current_modes(configuration)
+        expected_threads = get_expected_threads(configuration, current_modes)

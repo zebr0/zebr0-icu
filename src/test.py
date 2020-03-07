@@ -17,7 +17,7 @@ class TestCase(unittest.TestCase):
         self.assertFalse(heal.execute("/bin/false"))
 
     def test_read(self):
-        self.assertListEqual(list(heal.read("../test/modes")), CONFIGURATION)
+        self.assertListEqual(list(heal.read_configuration("../test/modes")), CONFIGURATION)
 
     def test_get_current_modes(self):
         self.assertListEqual(heal.get_current_modes(CONFIGURATION), ["mode_1"])
