@@ -2,9 +2,9 @@ import datetime
 import json
 import os.path
 import subprocess
+import sys
 import threading
 
-import sys
 import yaml
 
 
@@ -24,8 +24,8 @@ def get_current_modes(configuration):
             and execute(item.get("if"))]
 
 
-def get_expected_threads(configuration, current_modes):
-    return [StepThread(item) for item in configuration
+def get_expected_steps(configuration, current_modes):
+    return [item for item in configuration
             if not item.get("then-mode")  # steps
             and (not item.get("and-if-mode") or item.get("and-if-mode") in current_modes)]
 
@@ -105,4 +105,4 @@ class MasterThread(LoopThread):
     def loop(self):
         configuration = read_configuration(self.configuration_directory)
         current_modes = get_current_modes(configuration)
-        expected_threads = get_expected_threads(configuration, current_modes)
+        expected_steps = get_expected_steps(configuration, current_modes)
