@@ -30,6 +30,10 @@ def get_expected_steps(configuration, current_modes):
             and (not item.get("and-if-mode") or item.get("and-if-mode") in current_modes)]
 
 
+def get_current_steps():
+    return [thread.step for thread in threading.enumerate() if isinstance(thread, StepThread)]
+
+
 def split(items):
     steps, modes = [], []
 
@@ -106,3 +110,4 @@ class MasterThread(LoopThread):
         configuration = read_configuration(self.configuration_directory)
         current_modes = get_current_modes(configuration)
         expected_steps = get_expected_steps(configuration, current_modes)
+        current_steps = get_current_steps()
