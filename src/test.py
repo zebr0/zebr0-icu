@@ -26,6 +26,12 @@ class TestCase(unittest.TestCase):
     def test_get_expected_steps(self):
         self.assertListEqual(heal.get_expected_steps(CONFIGURATION, ["mode_1"]), [STEP_1, STEP_2])
 
+    def test_get_steps(self):
+        self.assertListEqual(
+            heal.get_steps([heal.StepThread(STEP_1), heal.StepThread(STEP_2), heal.StepThread(STEP_3)]),
+            [STEP_1, STEP_2, STEP_3]
+        )
+
     def test_get_current_steps(self):
         threads = [heal.StepThread(STEP_1), heal.StepThread(STEP_2), heal.StepThread(STEP_3)]
 

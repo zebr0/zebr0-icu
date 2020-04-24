@@ -30,6 +30,10 @@ def get_expected_steps(configuration, current_modes):
             and (not item.get("and-if-mode") or item.get("and-if-mode") in current_modes)]
 
 
+def get_steps(threads):
+    return [thread.step for thread in threads]
+
+
 def get_current_steps():
     return [thread.step for thread in threading.enumerate() if isinstance(thread, StepThread)]
 
