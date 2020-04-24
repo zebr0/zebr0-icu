@@ -34,8 +34,8 @@ def get_steps(threads):
     return [thread.step for thread in threads]
 
 
-def get_current_steps():
-    return [thread.step for thread in threading.enumerate() if isinstance(thread, StepThread)]
+def get_current_threads():
+    return [thread for thread in threading.enumerate() if isinstance(thread, StepThread)]
 
 
 def split(items):
@@ -114,4 +114,4 @@ class MasterThread(LoopThread):
         configuration = read_configuration(self.configuration_directory)
         current_modes = get_current_modes(configuration)
         expected_steps = get_expected_steps(configuration, current_modes)
-        current_steps = get_current_steps()
+        current_threads = get_current_threads()

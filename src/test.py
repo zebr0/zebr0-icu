@@ -32,17 +32,17 @@ class TestCase(unittest.TestCase):
             [STEP_1, STEP_2, STEP_3]
         )
 
-    def test_get_current_steps(self):
+    def test_get_current_threads(self):
         threads = [heal.StepThread(STEP_1), heal.StepThread(STEP_2), heal.StepThread(STEP_3)]
 
         for thread in threads:
             thread.start()
-        self.assertListEqual(heal.get_current_steps(), [STEP_1, STEP_2, STEP_3])
+        self.assertListEqual(heal.get_steps(heal.get_current_threads()), [STEP_1, STEP_2, STEP_3])
 
         for thread in threads:
             thread.stop.set()
             thread.join()
-        self.assertListEqual(heal.get_current_steps(), [])
+        self.assertFalse(heal.get_current_threads())
 
 
 unittest.main(verbosity=2)
