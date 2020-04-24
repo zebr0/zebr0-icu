@@ -38,6 +38,14 @@ def get_current_threads():
     return [thread for thread in threading.enumerate() if isinstance(thread, StepThread)]
 
 
+def stop_obsolete_threads(current_threads, expected_steps):
+    [thread.stop.set() for thread in current_threads if thread.step not in expected_steps]
+
+
+def start_missing_steps(current_threads, expected_steps):
+    [StepThread(step).start() for step in expected_steps if step not in get_steps(current_threads)]
+
+
 def split(items):
     steps, modes = [], []
 
@@ -115,3 +123,5 @@ class MasterThread(LoopThread):
         current_modes = get_current_modes(configuration)
         expected_steps = get_expected_steps(configuration, current_modes)
         current_threads = get_current_threads()
+        stop_obsolete_threads(current_threads, expected_steps)
+        start_missing_steps(current_threads, expected_steps)
