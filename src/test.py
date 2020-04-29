@@ -92,15 +92,51 @@ class TestCase(unittest.TestCase):
         self.assertEqual(current_threads[1].step, STEP_2)
 
     def test_stepthread_loop(self):
-        for step in [{"if-not": "touch ../test/tmp/ok", "then": "false"},
-                     {"if-not": "false", "then": "touch ../test/tmp/ko"}]:
+        for step in [{"if-not": "touch ../test/tmp/if-not", "then": "false"},
+                     {"if-not": "false", "then": "touch ../test/tmp/then"}]:
             thread = heal.StepThread(step)
             thread.start()
             thread.stop.set()
             thread.join()
 
-        self.assertTrue(tmp.joinpath("ok").is_file())
-        self.assertTrue(tmp.joinpath("ko").is_file())
+        self.assertTrue(tmp.joinpath("if-not").is_file())
+        self.assertTrue(tmp.joinpath("then").is_file())
+
+    def test_stepthread_status_na_ok(self):
+        thread = heal.StepThread({"if-not": "sleep 1", "then": "false"})
+        thread.start()
+        time.sleep(.5)
+        self.assertEqual(thread.status, heal.Status.N_A)
+        thread.stop.set()
+        thread.join()
+        self.assertEqual(thread.status, heal.Status.OK)
+
+    def test_stepthread_status_fixing_ok(self):
+        thread = heal.StepThread({"if-not": "test -f ../test/tmp/fixing_ok", "then": "sleep 1 && touch ../test/tmp/fixing_ok"})
+        thread.start()
+        time.sleep(.5)
+        self.assertEqual(thread.status, heal.Status.FIXING)
+        thread.stop.set()
+        thread.join()
+        self.assertEqual(thread.status, heal.Status.OK)
+
+    def test_stepthread_status_fixing_ko(self):
+        thread = heal.StepThread({"if-not": "test -f ../test/tmp/fixing_ko", "then": "sleep 1 && touch ../test/tmp/fixing_ko && false"})
+        thread.start()
+        time.sleep(.5)
+        self.assertEqual(thread.status, heal.Status.FIXING)
+        thread.stop.set()
+        thread.join()
+        self.assertEqual(thread.status, heal.Status.KO)
+
+    def test_stepthread_status_still_ko(self):
+        thread = heal.StepThread({"if-not": "false", "then": "sleep 1"})
+        thread.start()
+        time.sleep(.5)
+        self.assertEqual(thread.status, heal.Status.FIXING)
+        thread.stop.set()
+        thread.join()
+        self.assertEqual(thread.status, heal.Status.KO)
 
 
 unittest.main(verbosity=2)

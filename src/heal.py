@@ -1,9 +1,17 @@
+import enum
 import os.path
 import subprocess
 import sys
 import threading
 
 import yaml
+
+
+class Status(enum.Enum):
+    N_A = "N/A"
+    OK = "OK"
+    FIXING = "FIXING"
+    KO = "KO"
 
 
 def execute(command):
@@ -62,10 +70,17 @@ class StepThread(LoopThread):
     def __init__(self, step):
         super().__init__()
         self.step = step
+        self.status = Status.N_A
 
     def loop(self):
         if not execute(self.step.get("if-not")):
-            execute(self.step.get("then"))
+            self.status = Status.FIXING
+            if not execute(self.step.get("then")) or not execute(self.step.get("if-not")):
+                self.status = Status.KO
+            else:
+                self.status = Status.OK
+        else:
+            self.status = Status.OK
 
 
 class MasterThread(LoopThread):
