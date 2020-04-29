@@ -111,6 +111,10 @@ class StepThread(LoopThread):
         super().__init__()
         self.step = step
 
+    def loop(self):
+        if not execute(self.step.get("if-not")):
+            execute(self.step.get("then"))
+
 
 class MasterThread(LoopThread):
     def __init__(self, configuration_directory, status_file):

@@ -8,9 +8,9 @@ import heal
 
 MODE_1 = {"if": "true", "then-mode": "mode_1"}
 MODE_2 = {"if": "false", "then-mode": "mode_2"}
-STEP_1 = {"if-not": "echo 'default' >> tmp/modes", "then": "false"}
-STEP_2 = {"if-not": "echo 'mode_1' >> tmp/modes", "and-if-mode": "mode_1", "then": "false"}
-STEP_3 = {"if-not": "echo 'mode_2' >> tmp/modes", "and-if-mode": "mode_2", "then": "false"}
+STEP_1 = {"if-not": "true", "and-if-mode": "mode_1", "then": "false"}
+STEP_2 = {"if-not": "true", "and-if-mode": "mode_2", "then": "false"}
+STEP_3 = {"if-not": "true", "then": "false"}
 CONFIGURATION = [MODE_1, MODE_2, STEP_1, STEP_2, STEP_3]
 
 
@@ -30,7 +30,7 @@ class TestCase(unittest.TestCase):
         self.assertListEqual(heal.get_current_modes(CONFIGURATION), ["mode_1"])
 
     def test_get_expected_steps(self):
-        self.assertListEqual(heal.get_expected_steps(CONFIGURATION, ["mode_1"]), [STEP_1, STEP_2])
+        self.assertListEqual(heal.get_expected_steps(CONFIGURATION, ["mode_1"]), [STEP_1, STEP_3])
 
     def test_get_steps(self):
         self.assertListEqual(
