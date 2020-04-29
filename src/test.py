@@ -1,10 +1,14 @@
 #!/usr/bin/python3 -u
 
+import pathlib
+import shutil
 import threading
 import time
 import unittest
 
 import heal
+
+tmp = pathlib.Path("../test/tmp")
 
 MODE_1 = {"if": "true", "then-mode": "mode_1"}
 MODE_2 = {"if": "false", "then-mode": "mode_2"}
@@ -15,9 +19,16 @@ CONFIGURATION = [MODE_1, MODE_2, STEP_1, STEP_2, STEP_3]
 
 
 class TestCase(unittest.TestCase):
+    def setUp(self):
+        if not tmp.is_dir():
+            tmp.mkdir()
+
     def tearDown(self):
         # safety net: stops any remaining LoopThread at the end of each test, so that nothing gets stuck
         [thread.stop.set() for thread in threading.enumerate() if isinstance(thread, heal.LoopThread)]
+
+        if tmp.is_dir():
+            shutil.rmtree(tmp)
 
     def test_execute(self):
         self.assertTrue(heal.execute("/bin/true"))
@@ -79,6 +90,17 @@ class TestCase(unittest.TestCase):
         self.assertEqual(len(current_threads), 2)
         self.assertEqual(id(thread_1), id(current_threads[0]))
         self.assertEqual(current_threads[1].step, STEP_2)
+
+    def test_stepthread_loop(self):
+        for step in [{"if-not": "touch ../test/tmp/ok", "then": "false"},
+                     {"if-not": "false", "then": "touch ../test/tmp/ko"}]:
+            thread = heal.StepThread(step)
+            thread.start()
+            thread.stop.set()
+            thread.join()
+
+        self.assertTrue(tmp.joinpath("ok").is_file())
+        self.assertTrue(tmp.joinpath("ko").is_file())
 
 
 unittest.main(verbosity=2)
