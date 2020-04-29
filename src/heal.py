@@ -1,5 +1,3 @@
-import datetime
-import json
 import os.path
 import subprocess
 import sys
@@ -44,52 +42,6 @@ def stop_obsolete_threads(current_threads, expected_steps):
 
 def start_missing_steps(current_threads, expected_steps):
     [StepThread(step).start() for step in expected_steps if step not in get_steps(current_threads)]
-
-
-def split(items):
-    steps, modes = [], []
-
-    for item in items:
-        if item.get("then-mode"):
-            modes.append(item)
-        else:
-            steps.append(item)
-
-    return modes, steps
-
-
-def blibli(directory, output):
-    def write_output(status):
-        with open(output, "w") as outputfile:
-            json.dump({
-                "utc": datetime.datetime.utcnow().isoformat(),
-                "status": status,
-                "modes": current_modes
-            }, outputfile, indent=2)
-
-    modes, steps = split(read_configuration(directory))
-
-    current_modes = [mode.get("then-mode") for mode in modes if execute(mode.get("if"))]
-
-    for step in steps:
-        if_not = step.get("if-not")
-        then = step.get("then")
-        mode = step.get("and-if-mode")
-
-        if not mode or mode in current_modes:
-            print("test: " + if_not)
-            if not execute(if_not):
-                write_output("fixing")
-                print("test failed! fix: " + then)
-                execute(then)
-
-                print("test again: " + if_not)
-                if not execute(if_not):
-                    write_output("ko")
-                    print("fix failed!")
-                    exit(1)
-
-            write_output("ok")
 
 
 class LoopThread(threading.Thread):
