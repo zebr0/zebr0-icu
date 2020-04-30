@@ -1,5 +1,7 @@
 import enum
+import http.server
 import os.path
+import socketserver
 import subprocess
 import sys
 import threading
@@ -45,22 +47,54 @@ def get_current_threads():
 
 
 def stop_obsolete_threads(current_threads, expected_steps):
-    [thread.stop.set() for thread in current_threads if thread.step not in expected_steps]
+    [thread.stop() for thread in current_threads if thread.step not in expected_steps]
 
 
 def start_missing_steps(current_threads, expected_steps):
     [StepThread(step).start() for step in expected_steps if step not in get_steps(current_threads)]
 
 
-class LoopThread(threading.Thread):
+class StoppableThread(threading.Thread):
+    def stop(self):
+        pass
+
+
+class HTTPServerThread(StoppableThread):
+    class RequestHandler(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write("{}".encode("utf-8"))
+
+    class ThreadingHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
+        def __init__(self):
+            super().__init__(("", 8000), HTTPServerThread.RequestHandler)
+
     def __init__(self):
         super().__init__()
-        self.stop = threading.Event()
+        self.server = HTTPServerThread.ThreadingHTTPServer()
 
     def run(self):
-        while not self.stop.is_set():
+        self.server.serve_forever()
+
+    def stop(self):
+        self.server.shutdown()
+        self.server.server_close()
+
+
+class LoopThread(StoppableThread):
+    def __init__(self):
+        super().__init__()
+        self._stop_event = threading.Event()
+
+    def run(self):
+        while not self._stop_event.is_set():
             self.loop()
-            self.stop.wait(10)
+            self._stop_event.wait(10)
+
+    def stop(self):
+        self._stop_event.set()
 
     def loop(self):
         pass

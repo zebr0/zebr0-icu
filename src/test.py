@@ -25,7 +25,7 @@ class TestCase(unittest.TestCase):
 
     def tearDown(self):
         # safety net: stops any remaining LoopThread at the end of each test, so that nothing gets stuck
-        [thread.stop.set() for thread in threading.enumerate() if isinstance(thread, heal.LoopThread)]
+        [thread.stop() for thread in threading.enumerate() if isinstance(thread, heal.StoppableThread)]
 
         if tmp.is_dir():
             shutil.rmtree(tmp)
@@ -57,7 +57,7 @@ class TestCase(unittest.TestCase):
         self.assertListEqual(heal.get_steps(heal.get_current_threads()), [STEP_1, STEP_2, STEP_3])
 
         for thread in threads:
-            thread.stop.set()
+            thread.stop()
             thread.join()
         self.assertFalse(heal.get_current_threads())
 
@@ -91,12 +91,22 @@ class TestCase(unittest.TestCase):
         self.assertEqual(id(thread_1), id(current_threads[0]))
         self.assertEqual(current_threads[1].step, STEP_2)
 
+    def test_httpserverthread(self):
+        for _ in range(2):  # twice to check that the socket closes alright
+            thread = heal.HTTPServerThread()
+            thread.start()
+            time.sleep(.1)
+            self.assertTrue(thread.is_alive())
+            thread.stop()
+            thread.join()
+            self.assertFalse(thread.is_alive())
+
     def test_stepthread_loop(self):
         for step in [{"if-not": "touch ../test/tmp/if-not", "then": "false"},
                      {"if-not": "false", "then": "touch ../test/tmp/then"}]:
             thread = heal.StepThread(step)
             thread.start()
-            thread.stop.set()
+            thread.stop()
             thread.join()
 
         self.assertTrue(tmp.joinpath("if-not").is_file())
@@ -107,7 +117,7 @@ class TestCase(unittest.TestCase):
         thread.start()
         time.sleep(.5)
         self.assertEqual(thread.status, heal.Status.N_A)
-        thread.stop.set()
+        thread.stop()
         thread.join()
         self.assertEqual(thread.status, heal.Status.OK)
 
@@ -116,7 +126,7 @@ class TestCase(unittest.TestCase):
         thread.start()
         time.sleep(.5)
         self.assertEqual(thread.status, heal.Status.FIXING)
-        thread.stop.set()
+        thread.stop()
         thread.join()
         self.assertEqual(thread.status, heal.Status.OK)
 
@@ -125,7 +135,7 @@ class TestCase(unittest.TestCase):
         thread.start()
         time.sleep(.5)
         self.assertEqual(thread.status, heal.Status.FIXING)
-        thread.stop.set()
+        thread.stop()
         thread.join()
         self.assertEqual(thread.status, heal.Status.KO)
 
@@ -134,7 +144,7 @@ class TestCase(unittest.TestCase):
         thread.start()
         time.sleep(.5)
         self.assertEqual(thread.status, heal.Status.FIXING)
-        thread.stop.set()
+        thread.stop()
         thread.join()
         self.assertEqual(thread.status, heal.Status.KO)
 
