@@ -29,7 +29,10 @@ class TestCase(unittest.TestCase):
 
     def tearDown(self):
         # safety net: stops any remaining LoopThread at the end of each test, so that nothing gets stuck
-        [thread.stop() for thread in threading.enumerate() if isinstance(thread, heal.StoppableThread)]
+        for thread in threading.enumerate():
+            if isinstance(thread, heal.StoppableThread):
+                thread.stop()
+                thread.join()
 
         if tmp.is_dir():
             shutil.rmtree(tmp)
@@ -73,6 +76,21 @@ class TestCase(unittest.TestCase):
         time.sleep(.1)
         self.assertFalse(_get_current_threads())
 
+    def test_compute_thread_status(self):
+        self.assertEqual(heal.compute_thread_status(), "N/A")
+
+        heal.StepThread({"if-not": "true", "then": "false"}).start()
+        time.sleep(.1)
+        self.assertEqual(heal.compute_thread_status(), "OK")
+
+        heal.StepThread({"if-not": "false", "then": "sleep 1"}).start()
+        time.sleep(.1)
+        self.assertEqual(heal.compute_thread_status(), "FIXING")
+
+        heal.StepThread({"if-not": "false", "then": "false"}).start()
+        time.sleep(.1)
+        self.assertEqual(heal.compute_thread_status(), "KO")
+
     def test_httpserverthread(self):
         for _ in range(2):  # twice to check that the socket closes alright
             thread = heal.HTTPServerThread()
@@ -90,6 +108,7 @@ class TestCase(unittest.TestCase):
                      {"if-not": "false", "then": "touch ../test/tmp/then"}]:
             thread = heal.StepThread(step)
             thread.start()
+            time.sleep(.1)
             thread.stop()
             thread.join()
 

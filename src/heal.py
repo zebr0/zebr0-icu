@@ -53,6 +53,16 @@ def converge_threads(expected_steps):
     [StepThread(step).start() for step in expected_steps if step not in current_steps]
 
 
+def compute_thread_status():
+    statuses = set([thread.status for thread in threading.enumerate() if isinstance(thread, StepThread)])
+
+    for status in [Status.KO, Status.FIXING, Status.OK, Status.N_A]:
+        if status in statuses:
+            return status.value
+
+    return Status.N_A.value  # if empty
+
+
 class StoppableThread(threading.Thread):
     def stop(self):
         pass
@@ -68,7 +78,7 @@ class HTTPServerThread(StoppableThread):
 
     class ThreadingHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
         def __init__(self):
-            super().__init__(("", 8000), HTTPServerThread.RequestHandler)
+            super().__init__(("127.0.0.1", 8000), HTTPServerThread.RequestHandler)
 
     def __init__(self):
         super().__init__()
