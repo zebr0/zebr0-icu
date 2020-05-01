@@ -1,5 +1,7 @@
+import datetime
 import enum
 import http.server
+import json
 import os.path
 import socketserver
 import subprocess
@@ -74,7 +76,11 @@ class HTTPServerThread(StoppableThread):
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
-            self.wfile.write("{}".encode("utf-8"))
+            self.wfile.write(json.dumps({
+                "utc": datetime.datetime.utcnow().isoformat(),
+                "status": compute_thread_status(),
+                "modes": None
+            }).encode("utf-8"))
 
     class ThreadingHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
         def __init__(self):

@@ -1,10 +1,14 @@
 #!/usr/bin/python3 -u
 
+import json
 import pathlib
 import shutil
 import threading
 import time
 import unittest
+import urllib.request
+
+import dateutil.parser
 
 import heal
 
@@ -101,7 +105,17 @@ class TestCase(unittest.TestCase):
             thread.join()
             self.assertFalse(thread.is_alive())
 
-    # todo: test_httpserverthread_get
+    def test_httpserverthread_get(self):
+        heal.HTTPServerThread().start()
+
+        with urllib.request.urlopen("http://127.0.0.1:8000") as response:
+            self.assertEqual(response.status, 200)
+            self.assertEqual(response.info().get_content_type(), "application/json")
+
+            response_json = json.load(response)
+            dateutil.parser.parse(response_json.get("utc"))
+            self.assertEqual(response_json.get("status"), "N/A")
+            self.assertEqual(response_json.get("modes"), None)
 
     def test_stepthread_execute(self):
         for step in [{"if-not": "touch ../test/tmp/if-not", "then": "false"},
