@@ -101,7 +101,9 @@ class TestCase(unittest.TestCase):
             thread.join()
             self.assertFalse(thread.is_alive())
 
-    def test_stepthread_loop(self):
+    # todo: test_httpserverthread_get
+
+    def test_stepthread_execute(self):
         for step in [{"if-not": "touch ../test/tmp/if-not", "then": "false"},
                      {"if-not": "false", "then": "touch ../test/tmp/then"}]:
             thread = heal.StepThread(step)
@@ -111,6 +113,8 @@ class TestCase(unittest.TestCase):
 
         self.assertTrue(tmp.joinpath("if-not").is_file())
         self.assertTrue(tmp.joinpath("then").is_file())
+
+    # todo: test_stepthread_loop
 
     def test_stepthread_status_na_ok(self):
         thread = heal.StepThread({"if-not": "sleep 1", "then": "false"})
@@ -147,6 +151,9 @@ class TestCase(unittest.TestCase):
         thread.stop()
         thread.join()
         self.assertEqual(thread.status, heal.Status.KO)
+
+    # todo: test_masterthread
+    # todo: full tests
 
 
 unittest.main(verbosity=2)
