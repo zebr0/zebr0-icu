@@ -38,20 +38,19 @@ def get_expected_steps(configuration, current_modes):
             and (not item.get("and-if-mode") or item.get("and-if-mode") in current_modes)]
 
 
-def get_steps(threads):
-    return [thread.step for thread in threads]
+def converge_threads(expected_steps):
+    current_steps = []
 
+    # stop obsolete threads
+    for thread in threading.enumerate():
+        if isinstance(thread, StepThread):
+            if thread.step not in expected_steps:
+                thread.stop()
+            else:
+                current_steps.append(thread.step)
 
-def get_current_threads():
-    return [thread for thread in threading.enumerate() if isinstance(thread, StepThread)]
-
-
-def stop_obsolete_threads(current_threads, expected_steps):
-    [thread.stop() for thread in current_threads if thread.step not in expected_steps]
-
-
-def start_missing_steps(current_threads, expected_steps):
-    [StepThread(step).start() for step in expected_steps if step not in get_steps(current_threads)]
+    # start missing steps
+    [StepThread(step).start() for step in expected_steps if step not in current_steps]
 
 
 class StoppableThread(threading.Thread):
@@ -124,9 +123,8 @@ class MasterThread(LoopThread):
         self.status_file = status_file
 
     def loop(self):
+        # todo: look for changes in the configuration directory
         configuration = read_configuration(self.configuration_directory)
         current_modes = get_current_modes(configuration)
         expected_steps = get_expected_steps(configuration, current_modes)
-        current_threads = get_current_threads()
-        stop_obsolete_threads(current_threads, expected_steps)
-        start_missing_steps(current_threads, expected_steps)
+        converge_threads(expected_steps)

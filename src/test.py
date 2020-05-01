@@ -18,6 +18,10 @@ STEP_3 = {"if-not": "true", "then": "false"}
 CONFIGURATION = [MODE_1, MODE_2, STEP_1, STEP_2, STEP_3]
 
 
+def _get_current_threads():
+    return sorted([thread for thread in threading.enumerate() if isinstance(thread, heal.StepThread)], key=lambda thread: str(thread.step))
+
+
 class TestCase(unittest.TestCase):
     def setUp(self):
         if not tmp.is_dir():
@@ -43,53 +47,31 @@ class TestCase(unittest.TestCase):
     def test_get_expected_steps(self):
         self.assertListEqual(heal.get_expected_steps(CONFIGURATION, ["mode_1"]), [STEP_1, STEP_3])
 
-    def test_get_steps(self):
-        self.assertListEqual(
-            heal.get_steps([heal.StepThread(STEP_1), heal.StepThread(STEP_2), heal.StepThread(STEP_3)]),
-            [STEP_1, STEP_2, STEP_3]
-        )
+    def test_converge_threads(self):
+        self.assertFalse(_get_current_threads())
 
-    def test_get_current_threads(self):
-        threads = [heal.StepThread(STEP_1), heal.StepThread(STEP_2), heal.StepThread(STEP_3)]
-
-        for thread in threads:
-            thread.start()
-        self.assertListEqual(heal.get_steps(heal.get_current_threads()), [STEP_1, STEP_2, STEP_3])
-
-        for thread in threads:
-            thread.stop()
-            thread.join()
-        self.assertFalse(heal.get_current_threads())
-
-    def test_stop_obsolete_threads(self):
-        thread_1 = heal.StepThread(STEP_1)
-        thread_1.start()
-        thread_2 = heal.StepThread(STEP_2)
-        thread_2.start()
-
-        heal.stop_obsolete_threads([thread_1, thread_2], [STEP_1])
-        time.sleep(.1)
-        self.assertTrue(thread_1.is_alive())
-        self.assertFalse(thread_2.is_alive())
-
-        heal.stop_obsolete_threads([thread_1], [])
-        time.sleep(.1)
-        self.assertFalse(thread_1.is_alive())
-
-    def test_start_missing_steps(self):
-        self.assertFalse(heal.get_current_threads())
-
-        heal.start_missing_steps([], [STEP_1])
-        current_threads = heal.get_current_threads()
+        heal.converge_threads([STEP_1])
+        current_threads = _get_current_threads()
         self.assertEqual(len(current_threads), 1)
         thread_1 = current_threads[0]
         self.assertEqual(thread_1.step, STEP_1)
 
-        heal.start_missing_steps([thread_1], [STEP_1, STEP_2])
-        current_threads = sorted(heal.get_current_threads(), key=lambda thread: str(thread.step))
+        heal.converge_threads([STEP_1, STEP_2])
+        current_threads = _get_current_threads()
         self.assertEqual(len(current_threads), 2)
         self.assertEqual(id(thread_1), id(current_threads[0]))
-        self.assertEqual(current_threads[1].step, STEP_2)
+        thread_2 = current_threads[1]
+        self.assertEqual(thread_2.step, STEP_2)
+
+        heal.converge_threads([STEP_2])
+        time.sleep(.1)
+        current_threads = _get_current_threads()
+        self.assertEqual(len(current_threads), 1)
+        self.assertEqual(id(thread_2), id(current_threads[0]))
+
+        heal.converge_threads([])
+        time.sleep(.1)
+        self.assertFalse(_get_current_threads())
 
     def test_httpserverthread(self):
         for _ in range(2):  # twice to check that the socket closes alright
