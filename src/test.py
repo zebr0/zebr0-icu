@@ -23,7 +23,7 @@ CONFIGURATION = [MODE_1, MODE_2, STEP_1, STEP_2, STEP_3]
 
 
 def _get_current_threads():
-    return sorted([thread for thread in threading.enumerate() if isinstance(thread, heal.StepThread)], key=lambda thread: str(thread.step))
+    return sorted((thread for thread in threading.enumerate() if isinstance(thread, heal.StepThread)), key=lambda thread: str(thread.step))
 
 
 class TestCase(unittest.TestCase):
@@ -81,7 +81,7 @@ class TestCase(unittest.TestCase):
         self.assertFalse(_get_current_threads())
 
     def test_compute_thread_status(self):
-        self.assertEqual(heal.compute_thread_status(), "N/A")
+        self.assertEqual(heal.compute_thread_status(), "OK")
 
         heal.StepThread({"if-not": "true", "then": "false"}).start()
         time.sleep(.1)
@@ -114,7 +114,7 @@ class TestCase(unittest.TestCase):
 
             response_json = json.load(response)
             dateutil.parser.parse(response_json.get("utc"))
-            self.assertEqual(response_json.get("status"), "N/A")
+            self.assertEqual(response_json.get("status"), "OK")
             self.assertEqual(response_json.get("modes"), None)
 
     def test_stepthread_execute(self):
@@ -131,16 +131,16 @@ class TestCase(unittest.TestCase):
 
     # todo: test_stepthread_loop
 
-    def test_stepthread_status_na_ok(self):
+    def test_stepthread_status_default_then_ok(self):
         thread = heal.StepThread({"if-not": "sleep 1", "then": "false"})
         thread.start()
         time.sleep(.5)
-        self.assertEqual(thread.status, heal.Status.N_A)
+        self.assertEqual(thread.status, heal.Status.OK)
         thread.stop()
         thread.join()
         self.assertEqual(thread.status, heal.Status.OK)
 
-    def test_stepthread_status_fixing_ok(self):
+    def test_stepthread_status_fixing_then_ok(self):
         thread = heal.StepThread({"if-not": "test -f ../test/tmp/fixing_ok", "then": "sleep 1 && touch ../test/tmp/fixing_ok"})
         thread.start()
         time.sleep(.5)
@@ -149,7 +149,7 @@ class TestCase(unittest.TestCase):
         thread.join()
         self.assertEqual(thread.status, heal.Status.OK)
 
-    def test_stepthread_status_fixing_ko(self):
+    def test_stepthread_status_fixing_then_ko(self):
         thread = heal.StepThread({"if-not": "test -f ../test/tmp/fixing_ko", "then": "sleep 1 && touch ../test/tmp/fixing_ko && false"})
         thread.start()
         time.sleep(.5)

@@ -11,11 +11,10 @@ import threading
 import yaml
 
 
-class Status(enum.Enum):
-    N_A = "N/A"
-    OK = "OK"
-    FIXING = "FIXING"
-    KO = "KO"
+class Status(enum.IntEnum):
+    OK = 0
+    FIXING = 1
+    KO = 2
 
 
 def execute(command):
@@ -56,13 +55,7 @@ def converge_threads(expected_steps):
 
 
 def compute_thread_status():
-    statuses = set([thread.status for thread in threading.enumerate() if isinstance(thread, StepThread)])
-
-    for status in [Status.KO, Status.FIXING, Status.OK, Status.N_A]:
-        if status in statuses:
-            return status.value
-
-    return Status.N_A.value  # if empty
+    return max((thread.status for thread in threading.enumerate() if isinstance(thread, StepThread)), default=Status.OK).name
 
 
 class StoppableThread(threading.Thread):
@@ -119,7 +112,7 @@ class StepThread(LoopThread):
     def __init__(self, step):
         super().__init__()
         self.step = step
-        self.status = Status.N_A
+        self.status = Status.OK
 
     def loop(self):
         if not execute(self.step.get("if-not")):
