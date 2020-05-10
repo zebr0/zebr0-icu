@@ -28,6 +28,7 @@ def _get_current_threads():
 
 class TestCase(unittest.TestCase):
     def setUp(self):
+        # creates a temporary directory
         if not tmp.is_dir():
             tmp.mkdir()
 
@@ -38,6 +39,7 @@ class TestCase(unittest.TestCase):
                 thread.stop()
                 thread.join()
 
+        # removes the temporary directory
         if tmp.is_dir():
             shutil.rmtree(tmp)
 
@@ -46,6 +48,7 @@ class TestCase(unittest.TestCase):
         self.assertFalse(heal.execute("/bin/false"))
 
     def test_read_configuration(self):
+        # here we only need to test if the file is parsed correctly
         self.assertListEqual(list(heal.read_configuration("../test/read_configuration")), [MODE_1, MODE_2])
 
     def test_get_current_modes(self):
@@ -55,14 +58,17 @@ class TestCase(unittest.TestCase):
         self.assertListEqual(heal.get_expected_steps(CONFIGURATION, ["mode_1"]), [STEP_1, STEP_3])
 
     def test_converge_threads(self):
+        # ensure there's no thread running
         self.assertFalse(_get_current_threads())
 
+        # create a first thread
         heal.converge_threads([STEP_1])
         current_threads = _get_current_threads()
         self.assertEqual(len(current_threads), 1)
         thread_1 = current_threads[0]
         self.assertEqual(thread_1.step, STEP_1)
 
+        # create a second thread
         heal.converge_threads([STEP_1, STEP_2])
         current_threads = _get_current_threads()
         self.assertEqual(len(current_threads), 2)
@@ -70,32 +76,39 @@ class TestCase(unittest.TestCase):
         thread_2 = current_threads[1]
         self.assertEqual(thread_2.step, STEP_2)
 
+        # remove the first thread
         heal.converge_threads([STEP_2])
         time.sleep(.1)
         current_threads = _get_current_threads()
         self.assertEqual(len(current_threads), 1)
         self.assertEqual(id(thread_2), id(current_threads[0]))
 
+        # remove the second thread
         heal.converge_threads([])
         time.sleep(.1)
         self.assertFalse(_get_current_threads())
 
     def test_get_status_from_threads(self):
+        # when there's no thread running
         self.assertEqual(heal.get_status_from_threads(), "OK")
 
+        # when there's a successful thread running
         heal.StepThread({"if-not": "true", "then": "false"}).start()
         time.sleep(.1)
         self.assertEqual(heal.get_status_from_threads(), "OK")
 
+        # adding a "fixing" thread to the pool must change the status to "fixing"
         heal.StepThread({"if-not": "false", "then": "sleep 1"}).start()
         time.sleep(.1)
         self.assertEqual(heal.get_status_from_threads(), "FIXING")
 
+        # adding a "ko" thread to the pool must change the status to "ko"
         heal.StepThread({"if-not": "false", "then": "false"}).start()
         time.sleep(.1)
         self.assertEqual(heal.get_status_from_threads(), "KO")
 
     def test_get_current_modes_from_threads(self):
+        # when there's no thread running
         self.assertListEqual(heal.get_current_modes_from_threads(), [])
 
         heal.MasterThread("../test/read_configuration").start()
@@ -115,6 +128,7 @@ class TestCase(unittest.TestCase):
     def test_httpserverthread_get(self):
         heal.HTTPServerThread().start()
 
+        # here we only need to test if the response if valid and the json is good
         with urllib.request.urlopen("http://127.0.0.1:8000") as response:
             self.assertEqual(response.status, 200)
             self.assertEqual(response.info().get_content_type(), "application/json")
@@ -143,6 +157,7 @@ class TestCase(unittest.TestCase):
         thread.start()
         time.sleep(.5)
         self.assertEqual(thread.status, heal.Status.OK)
+
         thread.stop()
         thread.join()
         self.assertEqual(thread.status, heal.Status.OK)
@@ -152,6 +167,7 @@ class TestCase(unittest.TestCase):
         thread.start()
         time.sleep(.5)
         self.assertEqual(thread.status, heal.Status.FIXING)
+
         thread.stop()
         thread.join()
         self.assertEqual(thread.status, heal.Status.OK)
@@ -161,6 +177,7 @@ class TestCase(unittest.TestCase):
         thread.start()
         time.sleep(.5)
         self.assertEqual(thread.status, heal.Status.FIXING)
+
         thread.stop()
         thread.join()
         self.assertEqual(thread.status, heal.Status.KO)
@@ -170,6 +187,7 @@ class TestCase(unittest.TestCase):
         thread.start()
         time.sleep(.5)
         self.assertEqual(thread.status, heal.Status.FIXING)
+
         thread.stop()
         thread.join()
         self.assertEqual(thread.status, heal.Status.KO)

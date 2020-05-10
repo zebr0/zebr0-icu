@@ -55,10 +55,12 @@ def converge_threads(expected_steps):
 
 
 def get_status_from_threads():
+    # returns the name of the most critical status amongst the running stepthreads
     return max((thread.status for thread in threading.enumerate() if isinstance(thread, StepThread)), default=Status.OK).name
 
 
 def get_current_modes_from_threads():
+    # there should be only one masterthread amongst the running threads
     return next((thread.current_modes for thread in threading.enumerate() if isinstance(thread, MasterThread)), [])
 
 
@@ -81,7 +83,7 @@ class HTTPServerThread(StoppableThread):
 
     class ThreadingHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
         def __init__(self):
-            super().__init__(("127.0.0.1", 8000), HTTPServerThread.RequestHandler)
+            super().__init__(("127.0.0.1", 8000), HTTPServerThread.RequestHandler)  # todo: customize
 
     def __init__(self):
         super().__init__()
@@ -103,7 +105,7 @@ class LoopThread(StoppableThread):
     def run(self):
         while not self._stop_event.is_set():
             self.loop()
-            self._stop_event.wait(10)
+            self._stop_event.wait(10)  # todo: customize
 
     def stop(self):
         self._stop_event.set()
