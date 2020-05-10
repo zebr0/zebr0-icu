@@ -95,6 +95,13 @@ class TestCase(unittest.TestCase):
         time.sleep(.1)
         self.assertEqual(heal.compute_thread_status(), "KO")
 
+    def test_get_current_modes_from_threads(self):
+        self.assertListEqual(heal.get_current_modes_from_threads(), [])
+
+        heal.MasterThread("../test/read_configuration", None).start()
+        time.sleep(.1)
+        self.assertListEqual(heal.get_current_modes_from_threads(), ["mode_1"])
+
     def test_httpserverthread(self):
         for _ in range(2):  # twice to check that the socket closes alright
             thread = heal.HTTPServerThread()
@@ -115,7 +122,7 @@ class TestCase(unittest.TestCase):
             response_json = json.load(response)
             dateutil.parser.parse(response_json.get("utc"))
             self.assertEqual(response_json.get("status"), "OK")
-            self.assertEqual(response_json.get("modes"), None)
+            self.assertEqual(response_json.get("modes"), [])
 
     def test_stepthread_execute(self):
         for step in [{"if-not": "touch ../test/tmp/if-not", "then": "false"},

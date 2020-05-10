@@ -58,6 +58,10 @@ def compute_thread_status():
     return max((thread.status for thread in threading.enumerate() if isinstance(thread, StepThread)), default=Status.OK).name
 
 
+def get_current_modes_from_threads():
+    return next((thread.current_modes for thread in threading.enumerate() if isinstance(thread, MasterThread)), [])
+
+
 class StoppableThread(threading.Thread):
     def stop(self):
         pass
@@ -72,7 +76,7 @@ class HTTPServerThread(StoppableThread):
             self.wfile.write(json.dumps({
                 "utc": datetime.datetime.utcnow().isoformat(),
                 "status": compute_thread_status(),
-                "modes": None
+                "modes": get_current_modes_from_threads()
             }).encode("utf-8"))
 
     class ThreadingHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
@@ -130,10 +134,11 @@ class MasterThread(LoopThread):
         super().__init__()
         self.configuration_directory = configuration_directory
         self.status_file = status_file
+        self.current_modes = []
 
     def loop(self):
         # todo: look for changes in the configuration directory
         configuration = read_configuration(self.configuration_directory)
-        current_modes = get_current_modes(configuration)
-        expected_steps = get_expected_steps(configuration, current_modes)
+        self.current_modes = get_current_modes(configuration)
+        expected_steps = get_expected_steps(configuration, self.current_modes)
         converge_threads(expected_steps)
