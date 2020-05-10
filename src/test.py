@@ -80,20 +80,20 @@ class TestCase(unittest.TestCase):
         time.sleep(.1)
         self.assertFalse(_get_current_threads())
 
-    def test_compute_thread_status(self):
-        self.assertEqual(heal.compute_thread_status(), "OK")
+    def test_get_status_from_threads(self):
+        self.assertEqual(heal.get_status_from_threads(), "OK")
 
         heal.StepThread({"if-not": "true", "then": "false"}).start()
         time.sleep(.1)
-        self.assertEqual(heal.compute_thread_status(), "OK")
+        self.assertEqual(heal.get_status_from_threads(), "OK")
 
         heal.StepThread({"if-not": "false", "then": "sleep 1"}).start()
         time.sleep(.1)
-        self.assertEqual(heal.compute_thread_status(), "FIXING")
+        self.assertEqual(heal.get_status_from_threads(), "FIXING")
 
         heal.StepThread({"if-not": "false", "then": "false"}).start()
         time.sleep(.1)
-        self.assertEqual(heal.compute_thread_status(), "KO")
+        self.assertEqual(heal.get_status_from_threads(), "KO")
 
     def test_get_current_modes_from_threads(self):
         self.assertListEqual(heal.get_current_modes_from_threads(), [])

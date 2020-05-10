@@ -54,7 +54,7 @@ def converge_threads(expected_steps):
     [StepThread(step).start() for step in expected_steps if step not in current_steps]
 
 
-def compute_thread_status():
+def get_status_from_threads():
     return max((thread.status for thread in threading.enumerate() if isinstance(thread, StepThread)), default=Status.OK).name
 
 
@@ -75,7 +75,7 @@ class HTTPServerThread(StoppableThread):
             self.end_headers()
             self.wfile.write(json.dumps({
                 "utc": datetime.datetime.utcnow().isoformat(),
-                "status": compute_thread_status(),
+                "status": get_status_from_threads(),
                 "modes": get_current_modes_from_threads()
             }).encode("utf-8"))
 
