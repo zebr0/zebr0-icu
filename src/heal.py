@@ -130,10 +130,9 @@ class StepThread(LoopThread):
 
 
 class MasterThread(LoopThread):
-    def __init__(self, configuration_directory, status_file):
+    def __init__(self, configuration_directory):
         super().__init__()
         self.configuration_directory = configuration_directory
-        self.status_file = status_file
         self.current_modes = []
 
     def loop(self):

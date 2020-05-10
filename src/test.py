@@ -98,7 +98,7 @@ class TestCase(unittest.TestCase):
     def test_get_current_modes_from_threads(self):
         self.assertListEqual(heal.get_current_modes_from_threads(), [])
 
-        heal.MasterThread("../test/read_configuration", None).start()
+        heal.MasterThread("../test/read_configuration").start()
         time.sleep(.1)
         self.assertListEqual(heal.get_current_modes_from_threads(), ["mode_1"])
 
