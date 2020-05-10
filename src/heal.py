@@ -98,14 +98,15 @@ class HTTPServerThread(StoppableThread):
 
 
 class LoopThread(StoppableThread):
-    def __init__(self):
+    def __init__(self, delay):
         super().__init__()
         self._stop_event = threading.Event()
+        self.delay = delay
 
     def run(self):
         while not self._stop_event.is_set():
             self.loop()
-            self._stop_event.wait(10)  # todo: customize
+            self._stop_event.wait(self.delay)
 
     def stop(self):
         self._stop_event.set()
@@ -116,7 +117,7 @@ class LoopThread(StoppableThread):
 
 class StepThread(LoopThread):
     def __init__(self, step):
-        super().__init__()
+        super().__init__(step.get("delay", 10))  # todo: customize default value
         self.step = step
         self.status = Status.OK
 
@@ -133,7 +134,7 @@ class StepThread(LoopThread):
 
 class MasterThread(LoopThread):
     def __init__(self, configuration_directory):
-        super().__init__()
+        super().__init__(30)  # todo: customize default value
         self.configuration_directory = configuration_directory
         self.current_modes = []
 

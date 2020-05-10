@@ -150,7 +150,14 @@ class TestCase(unittest.TestCase):
         self.assertTrue(tmp.joinpath("if-not").is_file())
         self.assertTrue(tmp.joinpath("then").is_file())
 
-    # todo: test_stepthread_loop
+    def test_stepthread_loop_delay(self):
+        thread = heal.StepThread({"delay": .2, "if-not": "echo 'test' >> ../test/tmp/loop", "then": "false"})
+        thread.start()
+        time.sleep(.3)
+        thread.stop()
+        thread.join()
+
+        self.assertEqual(tmp.joinpath("loop").read_text(), "test\ntest\n")
 
     def test_stepthread_status_default_then_ok(self):
         thread = heal.StepThread({"if-not": "sleep 1", "then": "false"})
