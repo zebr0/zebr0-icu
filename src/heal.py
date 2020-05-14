@@ -64,6 +64,17 @@ def get_current_modes_from_threads():
     return next((thread.current_modes for thread in threading.enumerate() if isinstance(thread, MasterThread)), [])
 
 
+def shutdown(signum, frame):
+    # first ensure that any masterthread is stopped so that it can't create new threads
+    for thread in threading.enumerate():
+        if isinstance(thread, MasterThread):
+            thread.stop()
+            thread.join()
+
+    # then stop the remaining threads
+    [thread.stop() for thread in threading.enumerate() if isinstance(thread, StoppableThread)]
+
+
 class StoppableThread(threading.Thread):
     def stop(self):
         pass

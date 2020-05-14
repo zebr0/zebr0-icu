@@ -115,6 +115,16 @@ class TestCase(unittest.TestCase):
         time.sleep(.1)
         self.assertListEqual(heal.get_current_modes_from_threads(), ["mode_1"])
 
+    def test_shutdown(self):
+        # create a master and some step threads
+        heal.MasterThread("../test/shutdown").start()
+        time.sleep(.1)
+        self.assertEqual(len(threading.enumerate()), 4)  # 3 + main thread
+
+        heal.shutdown(None, None)  # parameters are irrelevant
+        time.sleep(.1)
+        self.assertEqual(len(threading.enumerate()), 1)  # only the main thread now
+
     def test_httpserverthread(self):
         for _ in range(2):  # twice to check that the socket closes alright
             thread = heal.HTTPServerThread()

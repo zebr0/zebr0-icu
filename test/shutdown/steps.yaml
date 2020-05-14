@@ -1,0 +1,5 @@
+---
+- if-not: "true"
+  then: "true"
+- if-not: "true"
+  then: "false"

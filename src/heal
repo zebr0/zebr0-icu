@@ -3,7 +3,6 @@
 import argparse
 import os
 import signal
-import threading
 
 import heal
 
@@ -26,14 +25,8 @@ argparser = argparse.ArgumentParser(description="Minimalist self-healing.")
 argparser.add_argument("-c", "--configuration-directory", default="/etc/heal.conf.d", type=is_directory, help="path to the yaml or json configuration directory (default: /etc/heal.conf.d)")
 args = argparser.parse_args()
 
-
 # handles signals properly
-def shutdown(signum, frame):
-    print("exit")
-    [thread.stop() for thread in threading.enumerate() if isinstance(thread, heal.StoppableThread)]
-
-
 for sig in [signal.SIGINT, signal.SIGTERM]:
-    signal.signal(sig, shutdown)
+    signal.signal(sig, heal.shutdown)
 
 heal.MasterThread(args.configuration_directory).start()
