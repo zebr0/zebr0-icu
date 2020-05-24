@@ -53,9 +53,12 @@ class TestCase(unittest.TestCase):
 
     def test_get_current_modes(self):
         self.assertListEqual(heal.get_current_modes(CONFIGURATION), ["mode_1"])
+        self.assertListEqual(heal.get_current_modes([STEP_1, STEP_2, STEP_3]), [])  # only steps here
 
     def test_get_expected_steps(self):
+        self.assertListEqual(heal.get_expected_steps(CONFIGURATION, []), [STEP_3])
         self.assertListEqual(heal.get_expected_steps(CONFIGURATION, ["mode_1"]), [STEP_1, STEP_3])
+        self.assertListEqual(heal.get_expected_steps(CONFIGURATION, ["mode_2"]), [STEP_2, STEP_3])
 
     def test_converge_threads(self):
         # ensure there's no thread running
