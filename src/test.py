@@ -182,12 +182,30 @@ class TestCase(unittest.TestCase):
                                          "DEBUG:heal:get_status_from_threads:exiting:KO"])
 
     def test_get_current_modes_from_threads(self):
-        # when there's no thread running
-        self.assertListEqual(heal.get_current_modes_from_threads(), [])
+        with self.assertLogs("heal", level="DEBUG") as cm:
+            # when there's no thread running
+            self.assertListEqual(heal.get_current_modes_from_threads(), [])
+            self.assertEqual(cm.output, ["DEBUG:heal:get_current_modes_from_threads:entering:():{}",
+                                         "DEBUG:heal:get_current_modes_from_threads:exiting:[]"])
 
-        heal.MasterThread("../test/read_configuration").start()
-        time.sleep(.1)
-        self.assertListEqual(heal.get_current_modes_from_threads(), ["mode_1"])
+        with self.assertLogs("heal", level="DEBUG") as cm:
+            heal.MasterThread("../test/read_configuration").start()
+            time.sleep(.1)
+            self.assertListEqual(heal.get_current_modes_from_threads(), ["mode_1"])
+            self.assertEqual(cm.output, ["DEBUG:heal:read_configuration:entering:('../test/read_configuration',):{}",
+                                         "DEBUG:heal:read_configuration:exiting:[{'if': 'true', 'then-mode': 'mode_1'}, {'if': 'false', 'then-mode': 'mode_2'}]",
+                                         "DEBUG:heal:get_current_modes:entering:([{'if': 'true', 'then-mode': 'mode_1'}, {'if': 'false', 'then-mode': 'mode_2'}],):{}",
+                                         "DEBUG:heal:execute:entering:('true',):{}",
+                                         "DEBUG:heal:execute:exiting:True",
+                                         "DEBUG:heal:execute:entering:('false',):{}",
+                                         "DEBUG:heal:execute:exiting:False",
+                                         "DEBUG:heal:get_current_modes:exiting:['mode_1']",
+                                         "DEBUG:heal:get_expected_steps:entering:([{'if': 'true', 'then-mode': 'mode_1'}, {'if': 'false', 'then-mode': 'mode_2'}], ['mode_1']):{}",
+                                         "DEBUG:heal:get_expected_steps:exiting:[]",
+                                         "DEBUG:heal:converge_threads:entering:([],):{}",
+                                         "DEBUG:heal:converge_threads:exiting:None",
+                                         "DEBUG:heal:get_current_modes_from_threads:entering:():{}",
+                                         "DEBUG:heal:get_current_modes_from_threads:exiting:['mode_1']"])
 
     def test_shutdown(self):
         # create a master and some step threads

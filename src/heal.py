@@ -86,6 +86,7 @@ def get_status_from_threads():
     return max(statuses, default=Status.OK).name
 
 
+@log
 def get_current_modes_from_threads():
     # there should be only one masterthread amongst the running threads
     return next((thread.current_modes for thread in threading.enumerate() if isinstance(thread, MasterThread)), [])
