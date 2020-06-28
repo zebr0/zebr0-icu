@@ -33,7 +33,7 @@ class TestCase(unittest.TestCase):
             tmp.mkdir()
 
     def tearDown(self):
-        # safety net: stops any remaining LoopThread at the end of each test, so that nothing gets stuck
+        # safety net: stops any remaining StoppableThread at the end of each test, so that nothing gets stuck
         for thread in threading.enumerate():
             if isinstance(thread, heal.StoppableThread):
                 thread.stop()
