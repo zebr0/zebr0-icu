@@ -66,12 +66,16 @@ def converge_threads(expected_steps):
     for thread in threading.enumerate():
         if isinstance(thread, StepThread):
             if thread.step not in expected_steps:
+                logger.info("converge_threads:stopping:%s", thread.step)
                 thread.stop()
             else:
                 current_steps.append(thread.step)
 
     # start missing steps
-    [StepThread(step).start() for step in expected_steps if step not in current_steps]
+    for step in expected_steps:
+        if step not in current_steps:
+            logger.info("converge_threads:starting:%s", step)
+            StepThread(step).start()
 
 
 def get_status_from_threads():

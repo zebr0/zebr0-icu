@@ -119,16 +119,20 @@ class TestCase(unittest.TestCase):
             self.assertFalse(_get_current_threads())
 
             self.assertEqual(cm.output, ["DEBUG:heal:converge_threads:entering:([{'if-not': 'true', 'and-if-mode': 'mode_1', 'then': 'false'}],):{}",
+                                         "INFO:heal:converge_threads:starting:{'if-not': 'true', 'and-if-mode': 'mode_1', 'then': 'false'}",
                                          "DEBUG:heal:execute:entering:('true',):{}",
                                          "DEBUG:heal:converge_threads:exiting:None",
                                          "DEBUG:heal:execute:exiting:True",
                                          "DEBUG:heal:converge_threads:entering:([{'if-not': 'true', 'and-if-mode': 'mode_1', 'then': 'false'}, {'if-not': 'true', 'and-if-mode': 'mode_2', 'then': 'false'}],):{}",
+                                         "INFO:heal:converge_threads:starting:{'if-not': 'true', 'and-if-mode': 'mode_2', 'then': 'false'}",
                                          "DEBUG:heal:execute:entering:('true',):{}",
                                          "DEBUG:heal:converge_threads:exiting:None",
                                          "DEBUG:heal:execute:exiting:True",
                                          "DEBUG:heal:converge_threads:entering:([{'if-not': 'true', 'and-if-mode': 'mode_2', 'then': 'false'}],):{}",
+                                         "INFO:heal:converge_threads:stopping:{'if-not': 'true', 'and-if-mode': 'mode_1', 'then': 'false'}",
                                          "DEBUG:heal:converge_threads:exiting:None",
                                          "DEBUG:heal:converge_threads:entering:([],):{}",
+                                         "INFO:heal:converge_threads:stopping:{'if-not': 'true', 'and-if-mode': 'mode_2', 'then': 'false'}",
                                          "DEBUG:heal:converge_threads:exiting:None"])
 
     def test_get_status_from_threads(self):
