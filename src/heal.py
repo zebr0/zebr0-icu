@@ -81,7 +81,9 @@ def converge_threads(expected_steps):
 @log
 def get_status_from_threads():
     # returns the name of the most critical status amongst the running stepthreads
-    return max((thread.status for thread in threading.enumerate() if isinstance(thread, StepThread)), default=Status.OK).name
+    statuses = [thread.status for thread in threading.enumerate() if isinstance(thread, StepThread)]
+    logger.debug("get_status_from_threads:statuses:%s", statuses)
+    return max(statuses, default=Status.OK).name
 
 
 def get_current_modes_from_threads():
