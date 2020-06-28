@@ -44,12 +44,20 @@ class TestCase(unittest.TestCase):
             shutil.rmtree(tmp)
 
     def test_execute(self):
-        self.assertTrue(heal.execute("/bin/true"))
-        self.assertFalse(heal.execute("/bin/false"))
+        with self.assertLogs("heal", level="DEBUG") as cm:
+            self.assertTrue(heal.execute("/bin/true"))
+            self.assertFalse(heal.execute("/bin/false"))
+            self.assertEqual(cm.output, ["DEBUG:heal:execute:entering:('/bin/true',):{}",
+                                         "DEBUG:heal:execute:exiting:True",
+                                         "DEBUG:heal:execute:entering:('/bin/false',):{}",
+                                         "DEBUG:heal:execute:exiting:False"])
 
     def test_read_configuration(self):
-        # here we only need to test if the file is parsed correctly
-        self.assertListEqual(list(heal.read_configuration("../test/read_configuration")), [MODE_1, MODE_2])
+        with self.assertLogs("heal", level="DEBUG") as cm:
+            # here we only need to test if the file is parsed correctly
+            self.assertListEqual(list(heal.read_configuration("../test/read_configuration")), [MODE_1, MODE_2])
+            self.assertEqual(cm.output, ["DEBUG:heal:read_configuration:entering:('../test/read_configuration',):{}",
+                                         "DEBUG:heal:read_configuration:exiting:[{'if': 'true', 'then-mode': 'mode_1'}, {'if': 'false', 'then-mode': 'mode_2'}]"])
 
     def test_get_current_modes(self):
         self.assertListEqual(heal.get_current_modes(CONFIGURATION), ["mode_1"])

@@ -2,6 +2,7 @@ import datetime
 import enum
 import http.server
 import json
+import logging
 import os.path
 import socketserver
 import subprocess
@@ -10,6 +11,8 @@ import threading
 
 import yaml
 
+logger = logging.getLogger(__name__)
+
 
 class Status(enum.IntEnum):
     OK = 0
@@ -17,14 +20,28 @@ class Status(enum.IntEnum):
     KO = 2
 
 
+def log(fn):
+    def log(*args, **kwargs):
+        logger.debug("%s:entering:%s:%s", fn.__name__, args, kwargs)
+        result = fn(*args, **kwargs)
+        logger.debug("%s:exiting:%s", fn.__name__, result)
+        return result
+
+    return log
+
+
+@log
 def execute(command):
     return subprocess.Popen(command, shell=True, stdout=sys.stdout, stderr=sys.stderr).wait() == 0
 
 
+@log
 def read_configuration(directory):
+    result = []
     for filename in os.listdir(directory):
         with open(os.path.join(directory, filename)) as file:
-            yield from yaml.load(file, Loader=yaml.BaseLoader)  # uses the yaml baseloader to preserve all strings
+            result.extend(yaml.load(file, Loader=yaml.BaseLoader))  # uses the yaml baseloader to preserve all strings
+    return result
 
 
 def get_current_modes(configuration):
