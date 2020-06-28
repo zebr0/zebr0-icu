@@ -141,37 +141,39 @@ class TestCase(unittest.TestCase):
         with self.assertLogs("heal", level="DEBUG") as cm:
             # when there's no thread running
             self.assertEqual(heal.get_status_from_threads(), "OK")
+            self.assertEqual(cm.output, ["DEBUG:heal:get_status_from_threads:entering:():{}",
+                                         "DEBUG:heal:get_status_from_threads:statuses:[]",
+                                         "DEBUG:heal:get_status_from_threads:exiting:OK"])
 
+        with self.assertLogs("heal", level="DEBUG") as cm:
             # when there's a successful thread running
             heal.StepThread({"if-not": "true", "then": "false"}).start()
             time.sleep(.1)
             self.assertEqual(heal.get_status_from_threads(), "OK")
+            self.assertEqual(cm.output, ["DEBUG:heal:execute:entering:('true',):{}",
+                                         "DEBUG:heal:execute:exiting:True",
+                                         "DEBUG:heal:get_status_from_threads:entering:():{}",
+                                         "DEBUG:heal:get_status_from_threads:statuses:[<Status.OK: 0>]",
+                                         "DEBUG:heal:get_status_from_threads:exiting:OK"])
 
+        with self.assertLogs("heal", level="DEBUG") as cm:
             # adding a "fixing" thread to the pool must change the status to "fixing"
             heal.StepThread({"if-not": "false", "then": "sleep 1"}).start()
             time.sleep(.1)
             self.assertEqual(heal.get_status_from_threads(), "FIXING")
-
-            # adding a "ko" thread to the pool must change the status to "ko"
-            heal.StepThread({"if-not": "false", "then": "false"}).start()
-            time.sleep(.1)
-            self.assertEqual(heal.get_status_from_threads(), "KO")
-
-            self.assertEqual(cm.output, ["DEBUG:heal:get_status_from_threads:entering:():{}",
-                                         "DEBUG:heal:get_status_from_threads:statuses:[]",
-                                         "DEBUG:heal:get_status_from_threads:exiting:OK",
-                                         "DEBUG:heal:execute:entering:('true',):{}",
-                                         "DEBUG:heal:execute:exiting:True",
-                                         "DEBUG:heal:get_status_from_threads:entering:():{}",
-                                         "DEBUG:heal:get_status_from_threads:statuses:[<Status.OK: 0>]",
-                                         "DEBUG:heal:get_status_from_threads:exiting:OK",
-                                         "DEBUG:heal:execute:entering:('false',):{}",
+            self.assertEqual(cm.output, ["DEBUG:heal:execute:entering:('false',):{}",
                                          "DEBUG:heal:execute:exiting:False",
                                          "DEBUG:heal:execute:entering:('sleep 1',):{}",
                                          "DEBUG:heal:get_status_from_threads:entering:():{}",
                                          "DEBUG:heal:get_status_from_threads:statuses:[<Status.OK: 0>, <Status.FIXING: 1>]",
-                                         "DEBUG:heal:get_status_from_threads:exiting:FIXING",
-                                         "DEBUG:heal:execute:entering:('false',):{}",
+                                         "DEBUG:heal:get_status_from_threads:exiting:FIXING"])
+
+        with self.assertLogs("heal", level="DEBUG") as cm:
+            # adding a "ko" thread to the pool must change the status to "ko"
+            heal.StepThread({"if-not": "false", "then": "false"}).start()
+            time.sleep(.1)
+            self.assertEqual(heal.get_status_from_threads(), "KO")
+            self.assertEqual(cm.output, ["DEBUG:heal:execute:entering:('false',):{}",
                                          "DEBUG:heal:execute:exiting:False",
                                          "DEBUG:heal:execute:entering:('false',):{}",
                                          "DEBUG:heal:execute:exiting:False",
