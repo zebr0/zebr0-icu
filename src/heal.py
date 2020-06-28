@@ -58,6 +58,7 @@ def get_expected_steps(configuration, current_modes):
             and (not item.get("and-if-mode") or item.get("and-if-mode") in current_modes)]
 
 
+@log
 def converge_threads(expected_steps):
     current_steps = []
 

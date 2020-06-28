@@ -85,35 +85,51 @@ class TestCase(unittest.TestCase):
                                          "DEBUG:heal:get_expected_steps:exiting:[{'if-not': 'true', 'and-if-mode': 'mode_2', 'then': 'false'}, {'if-not': 'true', 'then': 'false'}]"])
 
     def test_converge_threads(self):
-        # ensure there's no thread running
-        self.assertFalse(_get_current_threads())
+        with self.assertLogs("heal", level="DEBUG") as cm:
+            # ensure there's no thread running
+            self.assertFalse(_get_current_threads())
 
-        # create a first thread
-        heal.converge_threads([STEP_1])
-        current_threads = _get_current_threads()
-        self.assertEqual(len(current_threads), 1)
-        thread_1 = current_threads[0]
-        self.assertEqual(thread_1.step, STEP_1)
+            # create a first thread
+            heal.converge_threads([STEP_1])
+            time.sleep(.1)
+            current_threads = _get_current_threads()
+            self.assertEqual(len(current_threads), 1)
+            thread_1 = current_threads[0]
+            self.assertEqual(thread_1.step, STEP_1)
 
-        # create a second thread
-        heal.converge_threads([STEP_1, STEP_2])
-        current_threads = _get_current_threads()
-        self.assertEqual(len(current_threads), 2)
-        self.assertEqual(id(thread_1), id(current_threads[0]))
-        thread_2 = current_threads[1]
-        self.assertEqual(thread_2.step, STEP_2)
+            # create a second thread
+            heal.converge_threads([STEP_1, STEP_2])
+            time.sleep(.1)
+            current_threads = _get_current_threads()
+            self.assertEqual(len(current_threads), 2)
+            self.assertEqual(id(thread_1), id(current_threads[0]))
+            thread_2 = current_threads[1]
+            self.assertEqual(thread_2.step, STEP_2)
 
-        # remove the first thread
-        heal.converge_threads([STEP_2])
-        time.sleep(.1)
-        current_threads = _get_current_threads()
-        self.assertEqual(len(current_threads), 1)
-        self.assertEqual(id(thread_2), id(current_threads[0]))
+            # remove the first thread
+            heal.converge_threads([STEP_2])
+            time.sleep(.1)
+            current_threads = _get_current_threads()
+            self.assertEqual(len(current_threads), 1)
+            self.assertEqual(id(thread_2), id(current_threads[0]))
 
-        # remove the second thread
-        heal.converge_threads([])
-        time.sleep(.1)
-        self.assertFalse(_get_current_threads())
+            # remove the second thread
+            heal.converge_threads([])
+            time.sleep(.1)
+            self.assertFalse(_get_current_threads())
+
+            self.assertEqual(cm.output, ["DEBUG:heal:converge_threads:entering:([{'if-not': 'true', 'and-if-mode': 'mode_1', 'then': 'false'}],):{}",
+                                         "DEBUG:heal:execute:entering:('true',):{}",
+                                         "DEBUG:heal:converge_threads:exiting:None",
+                                         "DEBUG:heal:execute:exiting:True",
+                                         "DEBUG:heal:converge_threads:entering:([{'if-not': 'true', 'and-if-mode': 'mode_1', 'then': 'false'}, {'if-not': 'true', 'and-if-mode': 'mode_2', 'then': 'false'}],):{}",
+                                         "DEBUG:heal:execute:entering:('true',):{}",
+                                         "DEBUG:heal:converge_threads:exiting:None",
+                                         "DEBUG:heal:execute:exiting:True",
+                                         "DEBUG:heal:converge_threads:entering:([{'if-not': 'true', 'and-if-mode': 'mode_2', 'then': 'false'}],):{}",
+                                         "DEBUG:heal:converge_threads:exiting:None",
+                                         "DEBUG:heal:converge_threads:entering:([],):{}",
+                                         "DEBUG:heal:converge_threads:exiting:None"])
 
     def test_get_status_from_threads(self):
         # when there's no thread running
