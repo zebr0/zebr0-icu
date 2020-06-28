@@ -51,6 +51,7 @@ def get_current_modes(configuration):
             and execute(item.get("if"))]
 
 
+@log
 def get_expected_steps(configuration, current_modes):
     return [item for item in configuration
             if not item.get("then-mode")  # steps

@@ -73,9 +73,16 @@ class TestCase(unittest.TestCase):
                                          "DEBUG:heal:get_current_modes:exiting:[]"])
 
     def test_get_expected_steps(self):
-        self.assertListEqual(heal.get_expected_steps(CONFIGURATION, []), [STEP_3])
-        self.assertListEqual(heal.get_expected_steps(CONFIGURATION, ["mode_1"]), [STEP_1, STEP_3])
-        self.assertListEqual(heal.get_expected_steps(CONFIGURATION, ["mode_2"]), [STEP_2, STEP_3])
+        with self.assertLogs("heal", level="DEBUG") as cm:
+            self.assertListEqual(heal.get_expected_steps(CONFIGURATION, []), [STEP_3])
+            self.assertListEqual(heal.get_expected_steps(CONFIGURATION, ["mode_1"]), [STEP_1, STEP_3])
+            self.assertListEqual(heal.get_expected_steps(CONFIGURATION, ["mode_2"]), [STEP_2, STEP_3])
+            self.assertEqual(cm.output, ["DEBUG:heal:get_expected_steps:entering:([{'if': 'true', 'then-mode': 'mode_1'}, {'if': 'false', 'then-mode': 'mode_2'}, {'if-not': 'true', 'and-if-mode': 'mode_1', 'then': 'false'}, {'if-not': 'true', 'and-if-mode': 'mode_2', 'then': 'false'}, {'if-not': 'true', 'then': 'false'}], []):{}",
+                                         "DEBUG:heal:get_expected_steps:exiting:[{'if-not': 'true', 'then': 'false'}]",
+                                         "DEBUG:heal:get_expected_steps:entering:([{'if': 'true', 'then-mode': 'mode_1'}, {'if': 'false', 'then-mode': 'mode_2'}, {'if-not': 'true', 'and-if-mode': 'mode_1', 'then': 'false'}, {'if-not': 'true', 'and-if-mode': 'mode_2', 'then': 'false'}, {'if-not': 'true', 'then': 'false'}], ['mode_1']):{}",
+                                         "DEBUG:heal:get_expected_steps:exiting:[{'if-not': 'true', 'and-if-mode': 'mode_1', 'then': 'false'}, {'if-not': 'true', 'then': 'false'}]",
+                                         "DEBUG:heal:get_expected_steps:entering:([{'if': 'true', 'then-mode': 'mode_1'}, {'if': 'false', 'then-mode': 'mode_2'}, {'if-not': 'true', 'and-if-mode': 'mode_1', 'then': 'false'}, {'if-not': 'true', 'and-if-mode': 'mode_2', 'then': 'false'}, {'if-not': 'true', 'then': 'false'}], ['mode_2']):{}",
+                                         "DEBUG:heal:get_expected_steps:exiting:[{'if-not': 'true', 'and-if-mode': 'mode_2', 'then': 'false'}, {'if-not': 'true', 'then': 'false'}]"])
 
     def test_converge_threads(self):
         # ensure there's no thread running
