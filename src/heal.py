@@ -78,6 +78,7 @@ def converge_threads(expected_steps):
             StepThread(step).start()
 
 
+@log
 def get_status_from_threads():
     # returns the name of the most critical status amongst the running stepthreads
     return max((thread.status for thread in threading.enumerate() if isinstance(thread, StepThread)), default=Status.OK).name
