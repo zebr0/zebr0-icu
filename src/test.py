@@ -60,8 +60,17 @@ class TestCase(unittest.TestCase):
                                          "DEBUG:heal:read_configuration:exiting:[{'if': 'true', 'then-mode': 'mode_1'}, {'if': 'false', 'then-mode': 'mode_2'}]"])
 
     def test_get_current_modes(self):
-        self.assertListEqual(heal.get_current_modes(CONFIGURATION), ["mode_1"])
-        self.assertListEqual(heal.get_current_modes([STEP_1, STEP_2, STEP_3]), [])  # only steps here
+        with self.assertLogs("heal", level="DEBUG") as cm:
+            self.assertListEqual(heal.get_current_modes(CONFIGURATION), ["mode_1"])
+            self.assertListEqual(heal.get_current_modes([STEP_1, STEP_2, STEP_3]), [])  # only steps here
+            self.assertEqual(cm.output, ["DEBUG:heal:get_current_modes:entering:([{'if': 'true', 'then-mode': 'mode_1'}, {'if': 'false', 'then-mode': 'mode_2'}, {'if-not': 'true', 'and-if-mode': 'mode_1', 'then': 'false'}, {'if-not': 'true', 'and-if-mode': 'mode_2', 'then': 'false'}, {'if-not': 'true', 'then': 'false'}],):{}",
+                                         "DEBUG:heal:execute:entering:('true',):{}",
+                                         "DEBUG:heal:execute:exiting:True",
+                                         "DEBUG:heal:execute:entering:('false',):{}",
+                                         "DEBUG:heal:execute:exiting:False",
+                                         "DEBUG:heal:get_current_modes:exiting:['mode_1']",
+                                         "DEBUG:heal:get_current_modes:entering:([{'if-not': 'true', 'and-if-mode': 'mode_1', 'then': 'false'}, {'if-not': 'true', 'and-if-mode': 'mode_2', 'then': 'false'}, {'if-not': 'true', 'then': 'false'}],):{}",
+                                         "DEBUG:heal:get_current_modes:exiting:[]"])
 
     def test_get_expected_steps(self):
         self.assertListEqual(heal.get_expected_steps(CONFIGURATION, []), [STEP_3])

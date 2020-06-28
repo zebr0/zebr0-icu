@@ -44,6 +44,7 @@ def read_configuration(directory):
     return result
 
 
+@log
 def get_current_modes(configuration):
     return [item.get("then-mode") for item in configuration
             if item.get("then-mode")  # modes
