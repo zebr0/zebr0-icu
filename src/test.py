@@ -213,9 +213,12 @@ class TestCase(unittest.TestCase):
         time.sleep(.1)
         self.assertEqual(len(threading.enumerate()), 4)  # 3 + main thread
 
-        heal.shutdown(None, None)  # parameters are irrelevant
-        time.sleep(.1)
-        self.assertEqual(len(threading.enumerate()), 1)  # only the main thread now
+        with self.assertLogs("heal", level="DEBUG") as cm:
+            heal.shutdown(None, None)  # parameters are irrelevant
+            time.sleep(.1)
+            self.assertEqual(len(threading.enumerate()), 1)  # only the main thread now
+            self.assertEqual(cm.output, ["DEBUG:heal:shutdown:entering:(None, None):{}",
+                                         "DEBUG:heal:shutdown:exiting:None"])
 
     def test_httpserverthread(self):
         for _ in range(2):  # twice to check that the socket closes alright
