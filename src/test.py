@@ -44,7 +44,7 @@ class TestCase(unittest.TestCase):
             shutil.rmtree(tmp)
 
     def test_execute(self):
-        with self.assertLogs("heal", level="DEBUG") as cm:
+        with self.assertLogs(None, level="DEBUG") as cm:
             self.assertTrue(heal.execute("/bin/true"))
             self.assertFalse(heal.execute("/bin/false"))
             self.assertEqual(cm.output, ["DEBUG:heal:execute:entering:('/bin/true',):{}",
@@ -53,14 +53,14 @@ class TestCase(unittest.TestCase):
                                          "DEBUG:heal:execute:exiting:False"])
 
     def test_read_configuration(self):
-        with self.assertLogs("heal", level="DEBUG") as cm:
+        with self.assertLogs(None, level="DEBUG") as cm:
             # here we only need to test if the file is parsed correctly
             self.assertListEqual(list(heal.read_configuration("../test/read_configuration")), [MODE_1, MODE_2])
             self.assertEqual(cm.output, ["DEBUG:heal:read_configuration:entering:('../test/read_configuration',):{}",
                                          "DEBUG:heal:read_configuration:exiting:[{'if': 'true', 'then-mode': 'mode_1'}, {'if': 'false', 'then-mode': 'mode_2'}]"])
 
     def test_get_current_modes(self):
-        with self.assertLogs("heal", level="DEBUG") as cm:
+        with self.assertLogs(None, level="DEBUG") as cm:
             self.assertListEqual(heal.get_current_modes(CONFIGURATION), ["mode_1"])
             self.assertListEqual(heal.get_current_modes([STEP_1, STEP_2, STEP_3]), [])  # only steps here
             self.assertEqual(cm.output, ["DEBUG:heal:get_current_modes:entering:([{'if': 'true', 'then-mode': 'mode_1'}, {'if': 'false', 'then-mode': 'mode_2'}, {'if-not': 'true', 'and-if-mode': 'mode_1', 'then': 'false'}, {'if-not': 'true', 'and-if-mode': 'mode_2', 'then': 'false'}, {'if-not': 'true', 'then': 'false'}],):{}",
@@ -73,7 +73,7 @@ class TestCase(unittest.TestCase):
                                          "DEBUG:heal:get_current_modes:exiting:[]"])
 
     def test_get_expected_steps(self):
-        with self.assertLogs("heal", level="DEBUG") as cm:
+        with self.assertLogs(None, level="DEBUG") as cm:
             self.assertListEqual(heal.get_expected_steps(CONFIGURATION, []), [STEP_3])
             self.assertListEqual(heal.get_expected_steps(CONFIGURATION, ["mode_1"]), [STEP_1, STEP_3])
             self.assertListEqual(heal.get_expected_steps(CONFIGURATION, ["mode_2"]), [STEP_2, STEP_3])
@@ -88,7 +88,7 @@ class TestCase(unittest.TestCase):
         # ensure there's no thread running
         self.assertFalse(_get_current_threads())
 
-        with self.assertLogs("heal", level="DEBUG") as cm:
+        with self.assertLogs(None, level="DEBUG") as cm:
             # create a first thread
             heal.converge_threads([STEP_1])
             time.sleep(.1)
@@ -102,7 +102,7 @@ class TestCase(unittest.TestCase):
                                          "DEBUG:heal:converge_threads:exiting:None",
                                          "DEBUG:heal:execute:exiting:True"])
 
-        with self.assertLogs("heal", level="DEBUG") as cm:
+        with self.assertLogs(None, level="DEBUG") as cm:
             # create a second thread
             heal.converge_threads([STEP_1, STEP_2])
             time.sleep(.1)
@@ -117,7 +117,7 @@ class TestCase(unittest.TestCase):
                                          "DEBUG:heal:converge_threads:exiting:None",
                                          "DEBUG:heal:execute:exiting:True"])
 
-        with self.assertLogs("heal", level="DEBUG") as cm:
+        with self.assertLogs(None, level="DEBUG") as cm:
             # remove the first thread
             heal.converge_threads([STEP_2])
             time.sleep(.1)
@@ -128,7 +128,7 @@ class TestCase(unittest.TestCase):
                                          "INFO:heal:converge_threads:stopping:{'if-not': 'true', 'and-if-mode': 'mode_1', 'then': 'false'}",
                                          "DEBUG:heal:converge_threads:exiting:None"])
 
-        with self.assertLogs("heal", level="DEBUG") as cm:
+        with self.assertLogs(None, level="DEBUG") as cm:
             # remove the second thread
             heal.converge_threads([])
             time.sleep(.1)
@@ -139,7 +139,7 @@ class TestCase(unittest.TestCase):
 
     def test_get_status_from_threads(self):
         # when there's no thread running
-        with self.assertLogs("heal", level="DEBUG") as cm:
+        with self.assertLogs(None, level="DEBUG") as cm:
             self.assertEqual(heal.get_status_from_threads(), "OK")
             self.assertEqual(cm.output, ["DEBUG:heal:get_status_from_threads:entering:():{}",
                                          "DEBUG:heal:get_status_from_threads:statuses:[]",
@@ -148,7 +148,7 @@ class TestCase(unittest.TestCase):
         # when there's a successful thread running
         heal.StepThread({"if-not": "true", "then": "false"}).start()
         time.sleep(.1)
-        with self.assertLogs("heal", level="DEBUG") as cm:
+        with self.assertLogs(None, level="DEBUG") as cm:
             self.assertEqual(heal.get_status_from_threads(), "OK")
             self.assertEqual(cm.output, ["DEBUG:heal:get_status_from_threads:entering:():{}",
                                          "DEBUG:heal:get_status_from_threads:statuses:[<Status.OK: 0>]",
@@ -157,7 +157,7 @@ class TestCase(unittest.TestCase):
         # adding a "fixing" thread to the pool must change the status to "fixing"
         heal.StepThread({"if-not": "false", "then": "sleep 1"}).start()
         time.sleep(.1)
-        with self.assertLogs("heal", level="DEBUG") as cm:
+        with self.assertLogs(None, level="DEBUG") as cm:
             self.assertEqual(heal.get_status_from_threads(), "FIXING")
             self.assertEqual(cm.output, ["DEBUG:heal:get_status_from_threads:entering:():{}",
                                          "DEBUG:heal:get_status_from_threads:statuses:[<Status.OK: 0>, <Status.FIXING: 1>]",
@@ -166,7 +166,7 @@ class TestCase(unittest.TestCase):
         # adding a "ko" thread to the pool must change the status to "ko"
         heal.StepThread({"if-not": "false", "then": "false"}).start()
         time.sleep(.1)
-        with self.assertLogs("heal", level="DEBUG") as cm:
+        with self.assertLogs(None, level="DEBUG") as cm:
             self.assertEqual(heal.get_status_from_threads(), "KO")
             self.assertEqual(cm.output, ["DEBUG:heal:get_status_from_threads:entering:():{}",
                                          "DEBUG:heal:get_status_from_threads:statuses:[<Status.OK: 0>, <Status.FIXING: 1>, <Status.KO: 2>]",
@@ -174,14 +174,14 @@ class TestCase(unittest.TestCase):
 
     def test_get_current_modes_from_threads(self):
         # when there's no thread running
-        with self.assertLogs("heal", level="DEBUG") as cm:
+        with self.assertLogs(None, level="DEBUG") as cm:
             self.assertListEqual(heal.get_current_modes_from_threads(), [])
             self.assertEqual(cm.output, ["DEBUG:heal:get_current_modes_from_threads:entering:():{}",
                                          "DEBUG:heal:get_current_modes_from_threads:exiting:[]"])
 
         heal.MasterThread("../test/read_configuration").start()
         time.sleep(.1)
-        with self.assertLogs("heal", level="DEBUG") as cm:
+        with self.assertLogs(None, level="DEBUG") as cm:
             self.assertListEqual(heal.get_current_modes_from_threads(), ["mode_1"])
             self.assertEqual(cm.output, ["DEBUG:heal:get_current_modes_from_threads:entering:():{}",
                                          "DEBUG:heal:get_current_modes_from_threads:exiting:['mode_1']"])
@@ -192,7 +192,7 @@ class TestCase(unittest.TestCase):
         time.sleep(.1)
         self.assertEqual(len(threading.enumerate()), 4)  # 3 + main thread
 
-        with self.assertLogs("heal", level="DEBUG") as cm:
+        with self.assertLogs(None, level="DEBUG") as cm:
             heal.shutdown(None, None)  # parameters are irrelevant
             time.sleep(.1)
             self.assertEqual(len(threading.enumerate()), 1)  # only the main thread now
