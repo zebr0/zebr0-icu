@@ -22,9 +22,11 @@ def execute(command):
 
 
 def read_configuration(directory):
+    result = []
     for filename in os.listdir(directory):
         with open(os.path.join(directory, filename)) as file:
-            yield from yaml.load(file, Loader=yaml.BaseLoader)  # uses the yaml baseloader to preserve all strings
+            result.extend(yaml.load(file, Loader=yaml.BaseLoader))  # uses the yaml baseloader to preserve all strings
+    return result
 
 
 def get_current_modes(configuration):
