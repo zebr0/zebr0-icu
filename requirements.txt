@@ -1,0 +1,8 @@
+PyYAML
+
+pytest
+python-dateutil
+
+setuptools
+wheel
+twine
