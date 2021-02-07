@@ -11,6 +11,29 @@ import threading
 import yaml
 
 
+class StoppableThread(threading.Thread):
+    def stop(self):
+        pass
+
+
+class LoopThread(StoppableThread):
+    def __init__(self, delay):
+        super().__init__()
+        self._stop_event = threading.Event()
+        self.delay = delay
+
+    def run(self):
+        while not self._stop_event.is_set():
+            self.loop()
+            self._stop_event.wait(self.delay)
+
+    def stop(self):
+        self._stop_event.set()
+
+    def loop(self):
+        pass
+
+
 class Status(enum.IntEnum):
     OK = 0
     FIXING = 1
@@ -19,6 +42,23 @@ class Status(enum.IntEnum):
 
 def execute(command):
     return subprocess.Popen(command, shell=True, stdout=sys.stdout, stderr=sys.stderr).wait() == 0
+
+
+class StepThread(LoopThread):
+    def __init__(self, step):
+        super().__init__(step.get("delay", 10))
+        self.step = step
+        self.status = Status.OK
+
+    def loop(self):
+        if not execute(self.step.get("if-not")):
+            self.status = Status.FIXING
+            if not execute(self.step.get("then")) or not execute(self.step.get("if-not")):
+                self.status = Status.KO
+            else:
+                self.status = Status.OK
+        else:
+            self.status = Status.OK
 
 
 def read_configuration(directory):
@@ -56,14 +96,17 @@ def converge_threads(expected_steps):
     [StepThread(step).start() for step in expected_steps if step not in current_steps]
 
 
-def get_status_from_threads():
-    # returns the name of the most critical status amongst the running stepthreads
-    return max((thread.status for thread in threading.enumerate() if isinstance(thread, StepThread)), default=Status.OK).name
+class MasterThread(LoopThread):
+    def __init__(self, configuration_directory):
+        super().__init__(30)
+        self.configuration_directory = configuration_directory
+        self.current_modes = []
 
-
-def get_current_modes_from_threads():
-    # there should be only one masterthread amongst the running threads
-    return next((thread.current_modes for thread in threading.enumerate() if isinstance(thread, MasterThread)), [])
+    def loop(self):
+        configuration = read_configuration(self.configuration_directory)
+        self.current_modes = get_current_modes(configuration)
+        expected_steps = get_expected_steps(configuration, self.current_modes)
+        converge_threads(expected_steps)
 
 
 def shutdown(*_):
@@ -77,9 +120,14 @@ def shutdown(*_):
     [thread.stop() for thread in threading.enumerate() if isinstance(thread, StoppableThread)]
 
 
-class StoppableThread(threading.Thread):
-    def stop(self):
-        pass
+def get_status_from_threads():
+    # returns the name of the most critical status amongst the running stepthreads
+    return max((thread.status for thread in threading.enumerate() if isinstance(thread, StepThread)), default=Status.OK).name
+
+
+def get_current_modes_from_threads():
+    # there should be only one masterthread amongst the running threads
+    return next((thread.current_modes for thread in threading.enumerate() if isinstance(thread, MasterThread)), [])
 
 
 class HTTPServerThread(StoppableThread):
@@ -108,51 +156,3 @@ class HTTPServerThread(StoppableThread):
     def stop(self):
         self.server.shutdown()
         self.server.server_close()
-
-
-class LoopThread(StoppableThread):
-    def __init__(self, delay):
-        super().__init__()
-        self._stop_event = threading.Event()
-        self.delay = delay
-
-    def run(self):
-        while not self._stop_event.is_set():
-            self.loop()
-            self._stop_event.wait(self.delay)
-
-    def stop(self):
-        self._stop_event.set()
-
-    def loop(self):
-        pass
-
-
-class StepThread(LoopThread):
-    def __init__(self, step):
-        super().__init__(step.get("delay", 10))
-        self.step = step
-        self.status = Status.OK
-
-    def loop(self):
-        if not execute(self.step.get("if-not")):
-            self.status = Status.FIXING
-            if not execute(self.step.get("then")) or not execute(self.step.get("if-not")):
-                self.status = Status.KO
-            else:
-                self.status = Status.OK
-        else:
-            self.status = Status.OK
-
-
-class MasterThread(LoopThread):
-    def __init__(self, configuration_directory):
-        super().__init__(30)
-        self.configuration_directory = configuration_directory
-        self.current_modes = []
-
-    def loop(self):
-        configuration = read_configuration(self.configuration_directory)
-        self.current_modes = get_current_modes(configuration)
-        expected_steps = get_expected_steps(configuration, self.current_modes)
-        converge_threads(expected_steps)
