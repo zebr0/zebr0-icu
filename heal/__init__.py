@@ -19,22 +19,22 @@ class StoppableThread(threading.Thread):
 class LoopThread(StoppableThread):
     def __init__(self, delay):
         super().__init__()
-        self._stop_event = threading.Event()
+        self.event_stop = threading.Event()
         self.delay = delay
 
     def run(self):
-        while not self._stop_event.is_set():
+        while not self.event_stop.is_set():
             self.loop()
-            self._stop_event.wait(self.delay)
+            self.event_stop.wait(self.delay)
 
     def stop(self):
-        self._stop_event.set()
+        self.event_stop.set()
 
     def loop(self):
         pass
 
 
-class Status(enum.IntEnum):
+class Status(int, enum.Enum):
     OK = 0
     FIXING = 1
     KO = 2
