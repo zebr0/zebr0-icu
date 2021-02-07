@@ -96,7 +96,7 @@ class HTTPServerThread(StoppableThread):
 
     class ThreadingHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
         def __init__(self):
-            super().__init__(("127.0.0.1", 8000), HTTPServerThread.RequestHandler)  # todo: customize
+            super().__init__(("127.0.0.1", 8000), HTTPServerThread.RequestHandler)
 
     def __init__(self):
         super().__init__()
@@ -130,7 +130,7 @@ class LoopThread(StoppableThread):
 
 class StepThread(LoopThread):
     def __init__(self, step):
-        super().__init__(step.get("delay", 10))  # todo: customize default value
+        super().__init__(step.get("delay", 10))
         self.step = step
         self.status = Status.OK
 
@@ -147,12 +147,11 @@ class StepThread(LoopThread):
 
 class MasterThread(LoopThread):
     def __init__(self, configuration_directory):
-        super().__init__(30)  # todo: customize default value
+        super().__init__(30)
         self.configuration_directory = configuration_directory
         self.current_modes = []
 
     def loop(self):
-        # todo: look for changes in the configuration directory
         configuration = read_configuration(self.configuration_directory)
         self.current_modes = get_current_modes(configuration)
         expected_steps = get_expected_steps(configuration, self.current_modes)
