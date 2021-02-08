@@ -20,11 +20,6 @@ def clean_before_and_after():
     clean()
 
 
-def test_execute():
-    assert heal.execute("/bin/true")
-    assert not heal.execute("/bin/false")
-
-
 STEPS_YAML = """
 ---
 - if-not: "true"

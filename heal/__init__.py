@@ -1,11 +1,11 @@
 import datetime
 import enum
+import functools
 import http.server
 import json
 import os.path
 import socketserver
 import subprocess
-import sys
 import threading
 
 import yaml
@@ -40,8 +40,7 @@ class Status(int, enum.Enum):
     KO = 2
 
 
-def execute(command):
-    return subprocess.Popen(command, shell=True, stdout=sys.stdout, stderr=sys.stderr).wait() == 0
+run = functools.partial(subprocess.run, shell=True)
 
 
 class StepThread(LoopThread):
@@ -51,9 +50,9 @@ class StepThread(LoopThread):
         self.status = Status.OK
 
     def loop(self):
-        if not execute(self.step.get("if-not")):
+        if run(self.step.get("if-not")).returncode != 0:
             self.status = Status.FIXING
-            if not execute(self.step.get("then")) or not execute(self.step.get("if-not")):
+            if run(self.step.get("then")).returncode != 0 or run(self.step.get("if-not")).returncode != 0:
                 self.status = Status.KO
             else:
                 self.status = Status.OK
@@ -72,7 +71,7 @@ def read_configuration(directory):
 def get_current_modes(configuration):
     return [item.get("then-mode") for item in configuration
             if item.get("then-mode")  # modes
-            and execute(item.get("if"))]
+            and run(item.get("if")).returncode == 0]
 
 
 def get_expected_steps(configuration, current_modes):
