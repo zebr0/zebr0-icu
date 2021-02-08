@@ -1,6 +1,6 @@
 import datetime
 import enum
-import functools
+import hashlib
 import http.server
 import json
 import os.path
@@ -34,30 +34,46 @@ class LoopThread(StoppableThread):
         pass
 
 
+ENCODING = "utf-8"
+
+
+def generate_uid(step):
+    return "#" + hashlib.md5(json.dumps(step).encode(ENCODING)).hexdigest()[:8]
+
+
 class Status(int, enum.Enum):
     OK = 0
     FIXING = 1
     KO = 2
 
 
-run = functools.partial(subprocess.run, shell=True)
-
-
 class StepThread(LoopThread):
     def __init__(self, step):
         super().__init__(step.get("delay", 10))
         self.step = step
+        self.uid = generate_uid(step)
         self.status = Status.OK
 
     def loop(self):
-        if run(self.step.get("if-not")).returncode != 0:
-            self.status = Status.FIXING
-            if run(self.step.get("then")).returncode != 0 or run(self.step.get("if-not")).returncode != 0:
-                self.status = Status.KO
-            else:
-                self.status = Status.OK
-        else:
+        if self.status != Status.OK or subprocess.run(self.step.get("if-not"), shell=True).returncode == 0:
+            return
+
+        print(self.uid, json.dumps(self.step))
+        print(self.uid, "test failed, fixing")
+        self.status = Status.FIXING
+
+        sp = subprocess.Popen(self.step.get("then"), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding=ENCODING)
+        for line in sp.stdout:
+            print(self.uid, line.rstrip())
+        if sp.wait() != 0:
+            print(self.uid, "error!")
+
+        if subprocess.run(self.step.get("if-not"), shell=True).returncode == 0:
+            print(self.uid, "fixed")
             self.status = Status.OK
+        else:
+            print(self.uid, "test still failed: fatal error!")
+            self.status = Status.KO
 
 
 def read_configuration(directory):
@@ -71,7 +87,7 @@ def read_configuration(directory):
 def get_current_modes(configuration):
     return [item.get("then-mode") for item in configuration
             if item.get("then-mode")  # modes
-            and run(item.get("if")).returncode == 0]
+            and subprocess.run(item.get("if"), shell=True).returncode == 0]
 
 
 def get_expected_steps(configuration, current_modes):
@@ -139,7 +155,7 @@ class HTTPServerThread(StoppableThread):
                 "utc": datetime.datetime.utcnow().isoformat(),
                 "status": get_status_from_threads(),
                 "modes": get_current_modes_from_threads()
-            }).encode("utf-8"))
+            }).encode(ENCODING))
 
     class ThreadingHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
         def __init__(self):

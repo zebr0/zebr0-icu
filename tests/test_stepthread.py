@@ -4,6 +4,7 @@ import time
 import pytest
 
 import heal
+from heal import Status
 
 
 @pytest.fixture(autouse=True)
@@ -20,68 +21,81 @@ def clean_before_and_after():
     clean()
 
 
-def test_stepthread_execute(tmp_path):
-    for step in [{"if-not": f"touch {tmp_path}/if-not", "then": "false"},
-                 {"if-not": "false", "then": f"touch {tmp_path}/then"}]:
-        thread = heal.StepThread(step)
-        thread.start()
-        time.sleep(.1)
-        thread.stop()
-        thread.join()
-
-    assert tmp_path.joinpath("if-not").is_file()
-    assert tmp_path.joinpath("then").is_file()
+def test_generate_uid():
+    assert heal.generate_uid({"yin": "yang"}) == "#0733d1bb"
 
 
-def test_stepthread_loop_delay(tmp_path):
-    thread = heal.StepThread({"delay": .2, "if-not": f"echo 'test' >> {tmp_path}/loop", "then": "false"})
+def test_ok(tmp_path, capsys):
+    thread = heal.StepThread({"if-not": f"echo ok && touch {tmp_path}/touch"})
     thread.start()
-    time.sleep(.3)
+    time.sleep(0.1)
+
+    assert thread.status == Status.OK
+    assert tmp_path.joinpath("touch").is_file()
+    assert capsys.readouterr().out == ""
+
+
+def test_ko_stays_ko(tmp_path, capsys):
+    thread = heal.StepThread({"if-not": f"touch {tmp_path}/touch"})
+    thread.status = Status.KO
+    thread.start()
+    time.sleep(0.1)
     thread.stop()
     thread.join()
+
+    assert thread.status == Status.KO
+    assert not tmp_path.joinpath("touch").exists()
+    assert capsys.readouterr().out == ""
+
+
+def test_loop(tmp_path):
+    heal.StepThread({"delay": 0.2, "if-not": f"echo test >> {tmp_path}/loop"}).start()
+    time.sleep(0.3)
 
     assert tmp_path.joinpath("loop").read_text() == "test\ntest\n"
 
 
-def test_stepthread_status_default_then_ok():
-    thread = heal.StepThread({"if-not": "sleep 1", "then": "false"})
+FIXED_WITH_PROGRESS_1 = """
+#0733d1bb {{"if-not": "test -f {0}/touch", "then": "echo test && sleep 1 && echo test && touch {0}/touch"}}
+#0733d1bb test failed, fixing
+#0733d1bb test
+""".lstrip()
+
+FIXED_WITH_PROGRESS_2 = """
+#0733d1bb test
+#0733d1bb fixed
+""".lstrip()
+
+
+def test_fixed_with_progress(monkeypatch, tmp_path, capsys):
+    monkeypatch.setattr(heal, "generate_uid", lambda a: "#0733d1bb")
+
+    thread = heal.StepThread({"if-not": f"test -f {tmp_path}/touch", "then": f"echo test && sleep 1 && echo test && touch {tmp_path}/touch"})
     thread.start()
-    time.sleep(.5)
-    assert thread.status == heal.Status.OK
+    time.sleep(0.1)
 
-    thread.stop()
-    thread.join()
-    assert thread.status == heal.Status.OK
+    assert thread.status == Status.FIXING
+    assert capsys.readouterr().out == FIXED_WITH_PROGRESS_1.format(tmp_path)
+
+    time.sleep(1)
+
+    assert thread.status == Status.OK
+    assert capsys.readouterr().out == FIXED_WITH_PROGRESS_2
 
 
-def test_stepthread_status_fixing_then_ok(tmp_path):
-    thread = heal.StepThread({"if-not": f"test -f {tmp_path}/fixing_ok", "then": f"sleep 1 && touch {tmp_path}/fixing_ok"})
+KO_WITH_ERROR = """
+#f4104b1a {"if-not": "/bin/false", "then": "echo test && /bin/false"}
+#f4104b1a test failed, fixing
+#f4104b1a test
+#f4104b1a error!
+#f4104b1a test still failed: fatal error!
+""".lstrip()
+
+
+def test_ko_with_error(monkeypatch, capsys):
+    thread = heal.StepThread({"if-not": "/bin/false", "then": "echo test && /bin/false"})
     thread.start()
-    time.sleep(.5)
-    assert thread.status == heal.Status.FIXING
+    time.sleep(0.1)
 
-    thread.stop()
-    thread.join()
-    assert thread.status == heal.Status.OK
-
-
-def test_stepthread_status_fixing_then_ko(tmp_path):
-    thread = heal.StepThread({"if-not": f"test -f {tmp_path}/fixing_ko", "then": f"sleep 1 && touch {tmp_path}/fixing_ko && false"})
-    thread.start()
-    time.sleep(.5)
-    assert thread.status == heal.Status.FIXING
-
-    thread.stop()
-    thread.join()
-    assert thread.status == heal.Status.KO
-
-
-def test_stepthread_status_still_ko():
-    thread = heal.StepThread({"if-not": "false", "then": "sleep 1"})
-    thread.start()
-    time.sleep(.5)
-    assert thread.status == heal.Status.FIXING
-
-    thread.stop()
-    thread.join()
-    assert thread.status == heal.Status.KO
+    assert thread.status == Status.KO
+    assert capsys.readouterr().out == KO_WITH_ERROR
