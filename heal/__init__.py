@@ -10,6 +10,10 @@ import threading
 
 import yaml
 
+DELAY_DEFAULT = 10
+
+ENCODING = "utf-8"
+
 
 class StoppableThread(threading.Thread):
     def stop(self):
@@ -19,8 +23,9 @@ class StoppableThread(threading.Thread):
 class LoopThread(StoppableThread):
     def __init__(self, delay):
         super().__init__()
-        self.event_stop = threading.Event()
+
         self.delay = delay
+        self.event_stop = threading.Event()
 
     def run(self):
         while not self.event_stop.is_set():
@@ -34,9 +39,6 @@ class LoopThread(StoppableThread):
         pass
 
 
-ENCODING = "utf-8"
-
-
 def generate_uid(step):
     return "#" + hashlib.md5(json.dumps(step).encode(ENCODING)).hexdigest()[:8]
 
@@ -48,8 +50,8 @@ class Status(int, enum.Enum):
 
 
 class StepThread(LoopThread):
-    def __init__(self, step):
-        super().__init__(step.get("delay", 10))
+    def __init__(self, step, delay_default=DELAY_DEFAULT):
+        super().__init__(step.get("delay", delay_default))
         self.step = step
         self.uid = generate_uid(step)
         self.status = Status.OK
@@ -96,7 +98,7 @@ def get_expected_steps(configuration, current_modes):
             and (not item.get("and-if-mode") or item.get("and-if-mode") in current_modes)]
 
 
-def converge_threads(expected_steps):
+def converge_threads(expected_steps, delay_default=DELAY_DEFAULT):
     current_steps = []
 
     # stop obsolete threads
@@ -108,20 +110,21 @@ def converge_threads(expected_steps):
                 current_steps.append(thread.step)
 
     # start missing steps
-    [StepThread(step).start() for step in expected_steps if step not in current_steps]
+    [StepThread(step, delay_default).start() for step in expected_steps if step not in current_steps]
 
 
 class MasterThread(LoopThread):
-    def __init__(self, configuration_directory):
+    def __init__(self, configuration_directory, delay_default=DELAY_DEFAULT):
         super().__init__(30)
         self.configuration_directory = configuration_directory
         self.current_modes = []
+        self.delay_default = delay_default
 
     def loop(self):
         configuration = read_configuration(self.configuration_directory)
         self.current_modes = get_current_modes(configuration)
         expected_steps = get_expected_steps(configuration, self.current_modes)
-        converge_threads(expected_steps)
+        converge_threads(expected_steps, self.delay_default)
 
 
 def shutdown(*_):
