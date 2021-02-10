@@ -3,7 +3,7 @@ import enum
 import hashlib
 import http.server
 import json
-import os.path
+import pathlib
 import socketserver
 import subprocess
 import threading
@@ -78,11 +78,25 @@ class StepThread(LoopThread):
             self.status = Status.KO
 
 
-def read_configuration(directory):
+def read_configuration(directory: pathlib.Path):
     result = []
-    for filename in os.listdir(directory):
-        with open(os.path.join(directory, filename)) as file:
-            result.extend(yaml.load(file, Loader=yaml.BaseLoader))  # uses the yaml baseloader to preserve all strings
+    for path in directory.iterdir():
+        if not path.is_file():
+            continue
+
+        try:
+            text = path.read_text(encoding=ENCODING)
+        except (OSError, ValueError) as e:
+            print(e)
+            continue
+
+        load = yaml.load(text, Loader=yaml.BaseLoader)
+        if not isinstance(load, list):
+            print(f"error, {path} is not a proper yaml or json list")
+            continue
+
+        result.extend(load)  # uses the yaml baseloader to preserve all strings
+
     return result
 
 
