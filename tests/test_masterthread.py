@@ -38,7 +38,7 @@ def test_get_expected_steps():
 
 
 def _get_current_threads():
-    return sorted((thread for thread in threading.enumerate() if isinstance(thread, heal.StepThread)), key=lambda thread: str(thread.step))
+    return sorted((thread for thread in threading.enumerate() if isinstance(thread, heal.probe.Probe)), key=lambda thread: str(thread.step))
 
 
 def test_converge_threads():

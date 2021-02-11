@@ -12,17 +12,17 @@ def test_get_status_from_threads():
     assert heal.get_status_from_threads() == "OK"
 
     # when there's a successful thread running
-    heal.StepThread({"if-not": "true", "then": "false"}).start()
+    heal.probe.Probe({"if-not": "true", "then": "false"}).start()
     time.sleep(.1)
     assert heal.get_status_from_threads() == "OK"
 
     # adding a "fixing" thread to the pool must change the status to "fixing"
-    heal.StepThread({"if-not": "false", "then": "sleep 1"}).start()
+    heal.probe.Probe({"if-not": "false", "then": "sleep 1"}).start()
     time.sleep(.1)
     assert heal.get_status_from_threads() == "FIXING"
 
     # adding a "ko" thread to the pool must change the status to "ko"
-    heal.StepThread({"if-not": "false", "then": "false"}).start()
+    heal.probe.Probe({"if-not": "false", "then": "false"}).start()
     time.sleep(.1)
     assert heal.get_status_from_threads() == "KO"
 
