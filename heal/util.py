@@ -29,5 +29,5 @@ class LoopThread(StoppableThread):
         pass
 
 
-def generate_uid(step):
-    return "#" + hashlib.md5(json.dumps(step).encode(ENCODING)).hexdigest()[:8]
+def generate_uid(obj):
+    return "#" + hashlib.md5(json.dumps(obj).encode(ENCODING)).hexdigest()[:8]

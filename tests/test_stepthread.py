@@ -27,13 +27,6 @@ def test_ko_stays_ko(tmp_path, capsys):
     assert capsys.readouterr().out == ""
 
 
-def test_loop(tmp_path):
-    heal.StepThread({"delay": 0.2, "if-not": f"echo test >> {tmp_path}/loop"}).start()
-    time.sleep(0.3)
-
-    assert tmp_path.joinpath("loop").read_text() == "test\ntest\n"
-
-
 FIXED_WITH_PROGRESS_1 = """
 #0733d1bb {{"if-not": "test -f {0}/touch", "then": "echo test && sleep 1 && echo test && touch {0}/touch"}}
 #0733d1bb test failed, fixing
