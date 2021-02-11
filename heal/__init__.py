@@ -1,5 +1,4 @@
 import datetime
-import enum
 import http.server
 import json
 import pathlib
@@ -9,44 +8,10 @@ import threading
 
 import yaml
 
+import probe
 import util
 
 DELAY_DEFAULT = 10
-
-
-class Status(int, enum.Enum):
-    OK = 0
-    FIXING = 1
-    KO = 2
-
-
-class StepThread(util.LoopThread):
-    def __init__(self, step, delay_default=DELAY_DEFAULT):
-        super().__init__(step.get("delay", delay_default))
-        self.step = step
-        self.uid = util.generate_uid(step)
-        self.status = Status.OK
-
-    def loop(self):
-        if self.status != Status.OK or subprocess.run(self.step.get("if-not"), shell=True).returncode == 0:
-            return
-
-        print(self.uid, json.dumps(self.step))
-        print(self.uid, "test failed, fixing")
-        self.status = Status.FIXING
-
-        sp = subprocess.Popen(self.step.get("then"), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding=util.ENCODING)
-        for line in sp.stdout:
-            print(self.uid, line.rstrip())
-        if sp.wait() != 0:
-            print(self.uid, "error!")
-
-        if subprocess.run(self.step.get("if-not"), shell=True).returncode == 0:
-            print(self.uid, "fixed")
-            self.status = Status.OK
-        else:
-            print(self.uid, "test still failed: fatal error!")
-            self.status = Status.KO
 
 
 def read_configuration(directory: pathlib.Path):
@@ -88,14 +53,14 @@ def converge_threads(expected_steps, delay_default=DELAY_DEFAULT):
 
     # stop obsolete threads
     for thread in threading.enumerate():
-        if isinstance(thread, StepThread):
+        if isinstance(thread, probe.Probe):
             if thread.step not in expected_steps:
                 thread.stop()
             else:
                 current_steps.append(thread.step)
 
     # start missing steps
-    [StepThread(step, delay_default).start() for step in expected_steps if step not in current_steps]
+    [probe.Probe(step, delay_default).start() for step in expected_steps if step not in current_steps]
 
 
 class MasterThread(util.LoopThread):
@@ -125,7 +90,7 @@ def shutdown(*_):
 
 def get_status_from_threads():
     # returns the name of the most critical status amongst the running stepthreads
-    return max((thread.status for thread in threading.enumerate() if isinstance(thread, StepThread)), default=Status.OK).name
+    return max((thread.status for thread in threading.enumerate() if isinstance(thread, probe.Probe)), default=probe.Status.OK).name
 
 
 def get_current_modes_from_threads():
