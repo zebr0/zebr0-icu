@@ -1,6 +1,5 @@
 import datetime
 import enum
-import hashlib
 import http.server
 import json
 import pathlib
@@ -10,37 +9,9 @@ import threading
 
 import yaml
 
+import util
+
 DELAY_DEFAULT = 10
-
-ENCODING = "utf-8"
-
-
-class StoppableThread(threading.Thread):
-    def stop(self):
-        pass
-
-
-class LoopThread(StoppableThread):
-    def __init__(self, delay):
-        super().__init__()
-
-        self.delay = delay
-        self.event_stop = threading.Event()
-
-    def run(self):
-        while not self.event_stop.is_set():
-            self.loop()
-            self.event_stop.wait(self.delay)
-
-    def stop(self):
-        self.event_stop.set()
-
-    def loop(self):
-        pass
-
-
-def generate_uid(step):
-    return "#" + hashlib.md5(json.dumps(step).encode(ENCODING)).hexdigest()[:8]
 
 
 class Status(int, enum.Enum):
@@ -49,11 +20,11 @@ class Status(int, enum.Enum):
     KO = 2
 
 
-class StepThread(LoopThread):
+class StepThread(util.LoopThread):
     def __init__(self, step, delay_default=DELAY_DEFAULT):
         super().__init__(step.get("delay", delay_default))
         self.step = step
-        self.uid = generate_uid(step)
+        self.uid = util.generate_uid(step)
         self.status = Status.OK
 
     def loop(self):
@@ -64,7 +35,7 @@ class StepThread(LoopThread):
         print(self.uid, "test failed, fixing")
         self.status = Status.FIXING
 
-        sp = subprocess.Popen(self.step.get("then"), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding=ENCODING)
+        sp = subprocess.Popen(self.step.get("then"), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding=util.ENCODING)
         for line in sp.stdout:
             print(self.uid, line.rstrip())
         if sp.wait() != 0:
@@ -85,7 +56,7 @@ def read_configuration(directory: pathlib.Path):
             continue
 
         try:
-            text = path.read_text(encoding=ENCODING)
+            text = path.read_text(encoding=util.ENCODING)
         except (OSError, ValueError) as e:
             print(e)
             continue
@@ -127,7 +98,7 @@ def converge_threads(expected_steps, delay_default=DELAY_DEFAULT):
     [StepThread(step, delay_default).start() for step in expected_steps if step not in current_steps]
 
 
-class MasterThread(LoopThread):
+class MasterThread(util.LoopThread):
     def __init__(self, configuration_directory, delay_default=DELAY_DEFAULT):
         super().__init__(30)
         self.configuration_directory = configuration_directory
@@ -149,7 +120,7 @@ def shutdown(*_):
             thread.join()
 
     # then stop the remaining threads
-    [thread.stop() for thread in threading.enumerate() if isinstance(thread, StoppableThread)]
+    [thread.stop() for thread in threading.enumerate() if isinstance(thread, util.StoppableThread)]
 
 
 def get_status_from_threads():
@@ -162,7 +133,7 @@ def get_current_modes_from_threads():
     return next((thread.current_modes for thread in threading.enumerate() if isinstance(thread, MasterThread)), [])
 
 
-class HTTPServerThread(StoppableThread):
+class HTTPServerThread(util.StoppableThread):
     class RequestHandler(http.server.BaseHTTPRequestHandler):
         def do_GET(self):
             self.send_response(200)
@@ -172,7 +143,7 @@ class HTTPServerThread(StoppableThread):
                 "utc": datetime.datetime.utcnow().isoformat(),
                 "status": get_status_from_threads(),
                 "modes": get_current_modes_from_threads()
-            }).encode(ENCODING))
+            }).encode(util.ENCODING))
 
     class ThreadingHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
         def __init__(self):

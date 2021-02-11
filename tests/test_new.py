@@ -11,7 +11,7 @@ def clean_before_and_after():
     def clean():
         # safety net: stops any remaining StoppableThread at the end of each test, so that nothing gets stuck
         for thread in threading.enumerate():
-            if isinstance(thread, heal.StoppableThread):
+            if isinstance(thread, heal.util.StoppableThread):
                 thread.stop()
                 thread.join()
 
