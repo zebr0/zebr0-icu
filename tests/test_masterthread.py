@@ -50,7 +50,7 @@ def test_converge_threads():
     current_threads = _get_current_threads()
     assert len(current_threads) == 1
     thread_1 = current_threads[0]
-    assert thread_1.step == STEP_1
+    assert thread_1.config == STEP_1
 
     # create a second thread
     heal.converge_threads([STEP_1, STEP_2])
@@ -58,7 +58,7 @@ def test_converge_threads():
     assert len(current_threads) == 2
     assert id(thread_1) == id(current_threads[0])
     thread_2 = current_threads[1]
-    assert thread_2.step == STEP_2
+    assert thread_2.config == STEP_2
 
     # remove the first thread
     heal.converge_threads([STEP_2])

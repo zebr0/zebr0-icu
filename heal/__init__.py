@@ -53,10 +53,10 @@ def converge_threads(expected_steps, delay_default=const.DELAY_DEFAULT):
     # stop obsolete threads
     for thread in threading.enumerate():
         if isinstance(thread, probe.Probe):
-            if thread.step not in expected_steps:
+            if thread.config not in expected_steps:
                 thread.stop()
             else:
-                current_steps.append(thread.step)
+                current_steps.append(thread.config)
 
     # start missing steps
     [probe.Probe(step, delay_default).start() for step in expected_steps if step not in current_steps]
