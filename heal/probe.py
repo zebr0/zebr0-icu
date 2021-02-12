@@ -2,7 +2,7 @@ import enum
 import json
 import subprocess
 
-import heal
+import const
 import util
 
 
@@ -13,7 +13,7 @@ class Status(int, enum.Enum):
 
 
 class Probe(util.LoopThread):
-    def __init__(self, step, delay_default=heal.DELAY_DEFAULT):
+    def __init__(self, step, delay_default=const.DELAY_DEFAULT):
         super().__init__(step.get("delay", delay_default))
         self.step = step
         self.uid = util.generate_uid(step)
@@ -27,7 +27,7 @@ class Probe(util.LoopThread):
         print(self.uid, "test failed, fixing")
         self.status = Status.FIXING
 
-        sp = subprocess.Popen(self.step.get("then"), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding=util.ENCODING)
+        sp = subprocess.Popen(self.step.get("then"), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding=const.ENCODING)
         for line in sp.stdout:
             print(self.uid, line.rstrip())
         if sp.wait() != 0:

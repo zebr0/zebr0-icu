@@ -8,10 +8,9 @@ import threading
 
 import yaml
 
+import const
 import probe
 import util
-
-DELAY_DEFAULT = 10
 
 
 def read_configuration(directory: pathlib.Path):
@@ -21,7 +20,7 @@ def read_configuration(directory: pathlib.Path):
             continue
 
         try:
-            text = path.read_text(encoding=util.ENCODING)
+            text = path.read_text(encoding=const.ENCODING)
         except (OSError, ValueError) as e:
             print(e)
             continue
@@ -48,7 +47,7 @@ def get_expected_steps(configuration, current_modes):
             and (not item.get("and-if-mode") or item.get("and-if-mode") in current_modes)]
 
 
-def converge_threads(expected_steps, delay_default=DELAY_DEFAULT):
+def converge_threads(expected_steps, delay_default=const.DELAY_DEFAULT):
     current_steps = []
 
     # stop obsolete threads
@@ -64,7 +63,7 @@ def converge_threads(expected_steps, delay_default=DELAY_DEFAULT):
 
 
 class MasterThread(util.LoopThread):
-    def __init__(self, configuration_directory, delay_default=DELAY_DEFAULT):
+    def __init__(self, configuration_directory, delay_default=const.DELAY_DEFAULT):
         super().__init__(30)
         self.configuration_directory = configuration_directory
         self.current_modes = []
@@ -108,7 +107,7 @@ class HTTPServerThread(util.StoppableThread):
                 "utc": datetime.datetime.utcnow().isoformat(),
                 "status": get_status_from_threads(),
                 "modes": get_current_modes_from_threads()
-            }).encode(util.ENCODING))
+            }).encode(const.ENCODING))
 
     class ThreadingHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
         def __init__(self):

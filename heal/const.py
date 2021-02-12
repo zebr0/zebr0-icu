@@ -1,0 +1,3 @@
+DELAY_DEFAULT = 10
+
+ENCODING = "utf-8"

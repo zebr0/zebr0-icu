@@ -2,7 +2,7 @@ import hashlib
 import json
 import threading
 
-ENCODING = "utf-8"
+import const
 
 
 class StoppableThread(threading.Thread):
@@ -30,4 +30,4 @@ class LoopThread(StoppableThread):
 
 
 def generate_uid(obj):
-    return "#" + hashlib.md5(json.dumps(obj).encode(ENCODING)).hexdigest()[:8]
+    return "#" + hashlib.md5(json.dumps(obj).encode(const.ENCODING)).hexdigest()[:8]
