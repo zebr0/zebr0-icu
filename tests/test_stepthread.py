@@ -1,11 +1,11 @@
 import time
 
 import heal
-from heal.probe import Status
+from heal.probe import Status, Probe
 
 
 def test_ok(tmp_path, capsys):
-    thread = heal.probe.Probe({"if-not": f"echo ok && touch {tmp_path}/touch"})
+    thread = Probe({"if-not": f"echo ok && touch {tmp_path}/touch"})
     thread.start()
     time.sleep(0.1)
 
@@ -15,7 +15,7 @@ def test_ok(tmp_path, capsys):
 
 
 def test_ko_stays_ko(tmp_path, capsys):
-    thread = heal.probe.Probe({"if-not": f"touch {tmp_path}/touch"})
+    thread = Probe({"if-not": f"touch {tmp_path}/touch"})
     thread.status = Status.KO
     thread.start()
     time.sleep(0.1)
@@ -42,7 +42,7 @@ FIXED_WITH_PROGRESS_2 = """
 def test_fixed_with_progress(monkeypatch, tmp_path, capsys):
     monkeypatch.setattr(heal.util, "generate_uid", lambda a: "#0733d1bb")
 
-    thread = heal.probe.Probe({"if-not": f"test -f {tmp_path}/touch", "then": f"echo test && sleep 1 && echo test && touch {tmp_path}/touch"})
+    thread = Probe({"if-not": f"test -f {tmp_path}/touch", "then": f"echo test && sleep 1 && echo test && touch {tmp_path}/touch"})
     thread.start()
     time.sleep(0.1)
 
@@ -65,7 +65,7 @@ KO_WITH_ERROR = """
 
 
 def test_ko_with_error(monkeypatch, capsys):
-    thread = heal.probe.Probe({"if-not": "/bin/false", "then": "echo test && /bin/false"})
+    thread = Probe({"if-not": "/bin/false", "then": "echo test && /bin/false"})
     thread.start()
     time.sleep(0.1)
 
