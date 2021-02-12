@@ -55,7 +55,7 @@ def test_fixed_with_progress(monkeypatch, tmp_path, capsys):
     assert capsys.readouterr().out == FIXED_WITH_PROGRESS_2
 
 
-KO_WITH_ERROR = """
+FATAL_ERROR_WITH_ERROR_IN_FIX = """
 #f4104b1a {"if-not": "/bin/false", "then": "echo test && /bin/false"}
 #f4104b1a test failed, fixing
 #f4104b1a test
@@ -64,10 +64,10 @@ KO_WITH_ERROR = """
 """.lstrip()
 
 
-def test_ko_with_error(monkeypatch, capsys):
+def test_fatal_error_with_error_in_fix(capsys):
     thread = Probe({"if-not": "/bin/false", "then": "echo test && /bin/false"})
     thread.start()
     time.sleep(0.1)
 
     assert thread.status == Status.KO
-    assert capsys.readouterr().out == KO_WITH_ERROR
+    assert capsys.readouterr().out == FATAL_ERROR_WITH_ERROR_IN_FIX
