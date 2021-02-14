@@ -22,3 +22,26 @@ def test_yield_config_from_disk_ok(tmp_path):
     tmp_path.joinpath("file2.yml").write_text(FILE_2, encoding=heal.ENCODING)
 
     assert sorted(heal.yield_config_from_disk(tmp_path)) == ["adipiscing", "amet", "consectetur", "dolor", "elit", "ipsum", "lorem", "sit"]
+
+
+def test_filter_modes_and_checks_ok():
+    modes, checks = heal.filter_modes_and_checks([{"check": "", "fix": ""},
+                                                  {"check": "", "fix": "", "when": ""},
+                                                  {"mode": "", "if": ""}])
+
+    assert modes == [{"mode": "", "if": ""}]
+    assert checks == [{"check": "", "fix": ""},
+                      {"check": "", "fix": "", "when": ""}]
+
+
+def test_filter_modes_and_checks_ko():
+    assert heal.filter_modes_and_checks([
+        {"check": ""},
+        {"check": "", "fix": "", "then": ""},
+        {"mode": ""},
+        {"mode": "", "if": "", "bonus": ""},
+        {"check": "", "fix": "", "when": "", "mode": "", "if": ""},
+        {},
+        {"how": ""},
+        "check"
+    ]) == ([], [])
