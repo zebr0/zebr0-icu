@@ -1,0 +1,5 @@
+#!/usr/bin/python3 -u
+
+import heal
+
+heal.main()
