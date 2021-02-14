@@ -1,5 +1,0 @@
----
-- test: "true"
-  mode: "mode_1"
-- test: "false"
-  mode: "mode_2"

@@ -1,3 +1,0 @@
----
-- test: "[ -f tmp/fixing ] && echo 'fixed' >> tmp/fixing"
-  fix: "sleep 2 && echo 'fixing' > tmp/fixing"
