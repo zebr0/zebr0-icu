@@ -45,3 +45,10 @@ def test_filter_modes_and_checks_ko():
         {"how": ""},
         "check"
     ]) == ([], [])
+
+
+def test_filter_current_modes_ok():
+    assert heal.filter_current_modes([
+        {"mode": "one", "if": "/bin/true"},
+        {"mode": "two", "if": "/bin/false"}
+    ]) == ["one"]
