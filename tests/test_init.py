@@ -25,24 +25,25 @@ def test_yield_config_from_disk_ok(tmp_path):
 
 
 def test_filter_modes_and_checks_ok():
-    modes, checks = heal.filter_modes_and_checks([{"check": "", "fix": ""},
-                                                  {"check": "", "fix": "", "when": ""},
+    modes, checks = heal.filter_modes_and_checks([{"check": "", "fix": "", "rank": "10"},
+                                                  {"check": "", "fix": "", "rank": "10", "when": ""},
                                                   {"mode": "", "if": ""}])
 
     assert modes == [{"mode": "", "if": ""}]
-    assert checks == [{"check": "", "fix": ""},
-                      {"check": "", "fix": "", "when": ""}]
+    assert checks == [{"check": "", "fix": "", "rank": 10},
+                      {"check": "", "fix": "", "rank": 10, "when": ""}]
 
 
 def test_filter_modes_and_checks_ko():
     assert heal.filter_modes_and_checks([
-        {"check": ""},
-        {"check": "", "fix": "", "then": ""},
-        {"check": "", "fix": {}},
-        {"check": "", "fix": []},
+        {"check": "", "fix": ""},
+        {"check": "", "fix": "", "rank": "10", "then": ""},
+        {"check": "", "fix": "", "rank": "max"},
+        {"check": "", "fix": "", "rank": {}},
+        {"check": "", "fix": "", "rank": []},
         {"mode": ""},
         {"mode": "", "if": "", "bonus": ""},
-        {"check": "", "fix": "", "when": "", "mode": "", "if": ""},
+        {"check": "", "fix": "", "rank": "10", "mode": "", "if": ""},
         {},
         {"how": ""},
         "check"

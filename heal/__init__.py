@@ -20,8 +20,12 @@ def filter_modes_and_checks(config):
 
             if keys == {"mode", "if"}:  # "mode" and "if" are mandatory
                 modes.append(item)
-            elif keys == {"check", "fix"} or keys == {"check", "fix", "when"}:  # "when" is optional
-                checks.append(item)
+            elif keys == {"check", "fix", "rank"} or keys == {"check", "fix", "rank", "when"}:  # "when" is optional
+                try:
+                    item["rank"] = int(item["rank"])
+                    checks.append(item)
+                except ValueError:
+                    pass
 
     return modes, checks
 
