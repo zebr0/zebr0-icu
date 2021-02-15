@@ -38,6 +38,8 @@ def test_filter_modes_and_checks_ko():
     assert heal.filter_modes_and_checks([
         {"check": ""},
         {"check": "", "fix": "", "then": ""},
+        {"check": "", "fix": {}},
+        {"check": "", "fix": []},
         {"mode": ""},
         {"mode": "", "if": "", "bonus": ""},
         {"check": "", "fix": "", "when": "", "mode": "", "if": ""},

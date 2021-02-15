@@ -15,7 +15,7 @@ def filter_modes_and_checks(config):
     modes, checks = [], []
 
     for item in config:
-        if isinstance(item, dict):
+        if isinstance(item, dict) and all(isinstance(value, str) for value in item.values()):
             keys = item.keys()
 
             if keys == {"mode", "if"}:  # "mode" and "if" are mandatory
