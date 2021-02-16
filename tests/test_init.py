@@ -77,7 +77,13 @@ def test_read_config_from_disk_ko_not_a_list(tmp_path, capsys):
     assert capsys.readouterr().out == READ_CONFIG_FROM_DISK_KO_NOT_A_LIST_OUTPUT.format(tmp_path, not_a_list_path)
 
 
-def test_filter_modes_and_checks_ok():
+FILTER_MODES_AND_CHECKS_OK_OUTPUT = """
+filtering modes and checks from config
+done filtering modes and checks from config
+""".lstrip()
+
+
+def test_filter_modes_and_checks_ok(capsys):
     modes, checks = heal.filter_modes_and_checks([{"check": "", "fix": "", "rank": "10"},
                                                   {"check": "", "fix": "", "rank": "10", "when": ""},
                                                   {"mode": "", "if": ""}])
@@ -85,9 +91,27 @@ def test_filter_modes_and_checks_ok():
     assert modes == [{"mode": "", "if": ""}]
     assert checks == [{"check": "", "fix": "", "rank": 10},
                       {"check": "", "fix": "", "rank": 10, "when": ""}]
+    assert capsys.readouterr().out == FILTER_MODES_AND_CHECKS_OK_OUTPUT
 
 
-def test_filter_modes_and_checks_ko():
+FILTER_MODES_AND_CHECKS_KO_OUTPUT = """
+filtering modes and checks from config
+ignored, keys must match {"mode", "if"} or {"check", "fix", "rank"} or {"check", "fix", "rank", "when"}: {"check": "", "fix": ""}
+ignored, keys must match {"mode", "if"} or {"check", "fix", "rank"} or {"check", "fix", "rank", "when"}: {"check": "", "fix": "", "rank": "10", "then": ""}
+ignored, rank must be an integer: {"check": "", "fix": "", "rank": "max"}
+ignored, all values must be strings: {"check": "", "fix": "", "rank": {}}
+ignored, all values must be strings: {"check": "", "fix": "", "rank": []}
+ignored, keys must match {"mode", "if"} or {"check", "fix", "rank"} or {"check", "fix", "rank", "when"}: {"mode": ""}
+ignored, keys must match {"mode", "if"} or {"check", "fix", "rank"} or {"check", "fix", "rank", "when"}: {"mode": "", "if": "", "bonus": ""}
+ignored, keys must match {"mode", "if"} or {"check", "fix", "rank"} or {"check", "fix", "rank", "when"}: {"check": "", "fix": "", "rank": "10", "mode": "", "if": ""}
+ignored, keys must match {"mode", "if"} or {"check", "fix", "rank"} or {"check", "fix", "rank", "when"}: {}
+ignored, keys must match {"mode", "if"} or {"check", "fix", "rank"} or {"check", "fix", "rank", "when"}: {"how": ""}
+ignored, not a dictionary: "check"
+done filtering modes and checks from config
+""".lstrip()
+
+
+def test_filter_modes_and_checks_ko(capsys):
     assert heal.filter_modes_and_checks([
         {"check": "", "fix": ""},
         {"check": "", "fix": "", "rank": "10", "then": ""},
@@ -101,6 +125,7 @@ def test_filter_modes_and_checks_ko():
         {"how": ""},
         "check"
     ]) == ([], [])
+    assert capsys.readouterr().out == FILTER_MODES_AND_CHECKS_KO_OUTPUT
 
 
 def test_filter_current_modes_ok():
