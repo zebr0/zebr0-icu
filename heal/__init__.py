@@ -6,9 +6,25 @@ import yaml
 ENCODING = "utf-8"
 
 
-def yield_config_from_disk(directory: Path):
+def read_config_from_disk(directory: Path):
+    print(f"reading configuration from directory: {directory}")
+    config = []
+
     for path in directory.iterdir():
-        yield from yaml.load(path.read_text(encoding=ENCODING), Loader=yaml.BaseLoader)  # uses the yaml baseloader to preserve all strings
+        try:
+            text = path.read_text(encoding=ENCODING)
+        except (OSError, ValueError) as e:
+            print(f"{path} ignored: {e}")
+            continue
+
+        data = yaml.load(text, Loader=yaml.BaseLoader)  # uses the yaml baseloader to preserve all strings
+        if not isinstance(data, list):
+            print(f"{path} ignored: not a proper yaml or json list")
+        else:
+            config.extend(data)
+
+    print(f"done reading configuration from directory: {directory}")
+    return config
 
 
 def filter_modes_and_checks(config):
