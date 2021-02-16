@@ -60,8 +60,8 @@ def filter_modes_and_checks(config):
     return modes, checks
 
 
-def filter_current_modes(modes):
-    return [mode.get("mode") for mode in modes if subprocess.run(mode.get("if"), shell=True).returncode == 0]
+def filter_ongoing_modes(modes):
+    return sorted(mode.get("mode") for mode in modes if subprocess.run(mode.get("if"), shell=True).returncode == 0)
 
 
 def main():

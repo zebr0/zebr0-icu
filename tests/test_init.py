@@ -128,8 +128,10 @@ def test_filter_modes_and_checks_ko(capsys):
     assert capsys.readouterr().out == FILTER_MODES_AND_CHECKS_KO_OUTPUT
 
 
-def test_filter_current_modes_ok():
-    assert heal.filter_current_modes([
+def test_filter_ongoing_modes_ok():
+    assert heal.filter_ongoing_modes([
         {"mode": "one", "if": "/bin/true"},
-        {"mode": "two", "if": "/bin/false"}
-    ]) == ["one"]
+        {"mode": "two", "if": "/bin/false"},
+        {"mode": "three", "if": "/bin/false"},
+        {"mode": "four", "if": "/bin/true"}
+    ]) == ["four", "one"]
