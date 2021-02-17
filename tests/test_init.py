@@ -84,13 +84,15 @@ done filtering modes and checks from config
 
 
 def test_filter_modes_and_checks_ok(capsys):
-    modes, checks = heal.filter_modes_and_checks([{"check": "", "fix": "", "rank": "10"},
-                                                  {"check": "", "fix": "", "rank": "10", "when": ""},
+    modes, checks = heal.filter_modes_and_checks([{"check": "", "fix": "", "rank": "2"},
+                                                  {"check": "b", "fix": "", "rank": "1", "when": ""},
+                                                  {"check": "a", "fix": "", "rank": "1", "when": ""},
                                                   {"mode": "", "if": ""}])
 
     assert modes == [{"mode": "", "if": ""}]
-    assert checks == [{"check": "", "fix": "", "rank": 10},
-                      {"check": "", "fix": "", "rank": 10, "when": ""}]
+    assert checks == [{"check": "a", "fix": "", "rank": 1, "when": ""},
+                      {"check": "b", "fix": "", "rank": 1, "when": ""},
+                      {"check": "", "fix": "", "rank": 2}]
     assert capsys.readouterr().out == FILTER_MODES_AND_CHECKS_OK_OUTPUT
 
 

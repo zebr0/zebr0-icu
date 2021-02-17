@@ -1,4 +1,5 @@
 import json
+import operator
 import subprocess
 from pathlib import Path
 
@@ -57,7 +58,7 @@ def filter_modes_and_checks(config):
             print('ignored, keys must match {"mode", "if"} or {"check", "fix", "rank"} or {"check", "fix", "rank", "when"}:', j)
 
     print("done filtering modes and checks from config")
-    return modes, checks
+    return modes, sorted(checks, key=operator.itemgetter("rank", "check"))
 
 
 def filter_ongoing_modes(modes):
