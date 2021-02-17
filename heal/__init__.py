@@ -65,5 +65,18 @@ def filter_ongoing_modes(modes):
     return sorted(mode.get("mode") for mode in modes if subprocess.run(mode.get("if"), shell=True).returncode == 0)
 
 
+def filter_ongoing_checks(ongoing_modes, checks):
+    print("filtering ongoing checks from ongoing modes")
+    ongoing_checks = []
+
+    for check in checks:
+        if not check.get("when") or check.get("when") in ongoing_modes:
+            print("active: ", json.dumps(check))
+            ongoing_checks.append(check)
+
+    print("done filtering ongoing checks from ongoing modes")
+    return ongoing_checks
+
+
 def main():
     pass

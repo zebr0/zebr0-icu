@@ -137,3 +137,22 @@ def test_filter_ongoing_modes_ok():
         {"mode": "three", "if": "/bin/false"},
         {"mode": "four", "if": "/bin/true"}
     ]) == ["four", "one"]
+
+
+FILTER_ONGOING_CHECKS_OK_OUTPUT = """
+filtering ongoing checks from ongoing modes
+active:  {"check": "a", "fix": "", "rank": 1}
+active:  {"check": "b", "fix": "", "rank": 2, "when": "one"}
+done filtering ongoing checks from ongoing modes
+""".lstrip()
+
+
+def test_filter_ongoing_checks_ok(capsys):
+    ongoing_modes = ["one"]
+    checks = [{"check": "a", "fix": "", "rank": 1},
+              {"check": "b", "fix": "", "rank": 2, "when": "one"},
+              {"check": "c", "fix": "", "rank": 3, "when": "two"}]
+
+    assert heal.filter_ongoing_checks(ongoing_modes, checks) == [{"check": "a", "fix": "", "rank": 1},
+                                                                 {"check": "b", "fix": "", "rank": 2, "when": "one"}]
+    assert capsys.readouterr().out == FILTER_ONGOING_CHECKS_OK_OUTPUT
