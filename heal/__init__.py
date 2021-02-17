@@ -78,5 +78,25 @@ def filter_ongoing_checks(ongoing_modes, checks):
     return ongoing_checks
 
 
+def draft(directory: Path):
+    previous_mtime, modes, current_checks, previous_ongoing_modes, previous_checks, ongoing_checks = 0, [], [], [], [], []
+
+    while True:
+        current_mtime = directory.stat().st_mtime
+        if current_mtime != previous_mtime:
+            modes, current_checks = filter_modes_and_checks(read_config_from_disk(directory))
+
+        current_ongoing_modes = filter_ongoing_modes(modes)
+        if current_ongoing_modes != previous_ongoing_modes or current_checks != previous_checks:
+            ongoing_checks = filter_ongoing_checks(current_ongoing_modes, current_checks)
+
+        for check in ongoing_checks:
+            print(json.dumps(check))
+
+        previous_mtime = current_mtime
+        previous_checks = current_checks
+        previous_ongoing_modes = current_ongoing_modes
+
+
 def main():
     pass
