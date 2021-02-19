@@ -78,24 +78,61 @@ def filter_ongoing_checks(ongoing_modes, checks):
     return ongoing_checks
 
 
+class Watcher:
+    def __init__(self, directory, mtime=0, modes=None, checks=None, ongoing_modes=None, ongoing_checks=None):
+        if not directory.is_dir():
+            raise ValueError("directory must exist")
+
+        self._directory = directory
+        self._mtime = mtime
+        self._modes = modes or []
+        self._checks = checks or []
+        self._ongoing_modes = ongoing_modes or []
+        self._ongoing_checks = ongoing_checks or []
+
+    def _directory_has_changed(self):
+        new_mtime = self._directory.stat().st_mtime
+        if new_mtime != self._mtime:
+            print(f"directory {self._directory} has changed")
+            self._mtime = new_mtime
+            return True
+        return False
+
+    def _checks_have_changed(self):
+        self._modes, new_checks = filter_modes_and_checks(read_config_from_disk(self._directory))
+        if new_checks != self._checks:
+            print("checks have changed")
+            self._checks = new_checks
+            return True
+        return False
+
+    def _ongoing_modes_have_changed(self):
+        new_ongoing_modes = filter_ongoing_modes(self._modes)
+        if new_ongoing_modes != self._ongoing_modes:
+            print(f"ongoing modes have changed: {new_ongoing_modes}")
+            self._ongoing_modes = new_ongoing_modes
+            return True
+        return False
+
+    def _refresh_ongoing_checks(self):
+        self._ongoing_checks = filter_ongoing_checks(self._ongoing_modes, self._checks)
+
+    def refresh_ongoing_checks_if_necessary(self):
+        if self._directory_has_changed():
+            if self._checks_have_changed() | self._ongoing_modes_have_changed():
+                self._refresh_ongoing_checks()
+        elif self._ongoing_modes_have_changed():
+            self._refresh_ongoing_checks()
+
+        return self._ongoing_checks
+
+
 def draft(directory: Path):
-    previous_mtime, modes, current_checks, previous_ongoing_modes, previous_checks, ongoing_checks = 0, [], [], [], [], []
+    watcher = Watcher(directory)
 
     while True:
-        current_mtime = directory.stat().st_mtime
-        if current_mtime != previous_mtime:
-            modes, current_checks = filter_modes_and_checks(read_config_from_disk(directory))
-
-        current_ongoing_modes = filter_ongoing_modes(modes)
-        if current_ongoing_modes != previous_ongoing_modes or current_checks != previous_checks:
-            ongoing_checks = filter_ongoing_checks(current_ongoing_modes, current_checks)
-
-        for check in ongoing_checks:
+        for check in watcher.refresh_ongoing_checks_if_necessary():
             print(json.dumps(check))
-
-        previous_mtime = current_mtime
-        previous_checks = current_checks
-        previous_ongoing_modes = current_ongoing_modes
 
 
 def main():
