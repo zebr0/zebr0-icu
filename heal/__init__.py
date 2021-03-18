@@ -1,6 +1,7 @@
 import json
 import operator
 import subprocess
+import threading
 from pathlib import Path
 
 import yaml
@@ -127,12 +128,46 @@ class Watcher:
         return self._ongoing_checks
 
 
+class FixThread(threading.Thread):
+    def __init__(self, fix) -> None:
+        super().__init__()
+        self.fix = fix
+
+    def run(self) -> None:
+        print("fixing:", self.fix)
+        sp = subprocess.Popen(self.fix, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding=ENCODING)
+        for line in sp.stdout:
+            print(line, end="")
+        if sp.wait() != 0:
+            print("error! return code:", sp.returncode)
+
+
+def try_checks(checks):
+    good_checks = []
+    for check in checks:
+        cp = subprocess.run(check.get("check"), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding=ENCODING)
+        if cp.returncode == 0:
+            good_checks.append(check)
+        else:
+            print(f"error in check {json.dumps(check)}")
+            print(cp.stdout)
+
+            fixthread = FixThread(check.get("fix"))
+            fixthread.start()
+            while fixthread.is_alive():
+                try_checks(good_checks)
+                fixthread.join(10)
+
+            cp = subprocess.run(check.get("check"), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding=ENCODING)
+            if cp.returncode != 0:
+                raise Exception("wrooooong!")
+
+
 def draft(directory: Path):
     watcher = Watcher(directory)
 
     while True:
-        for check in watcher.refresh_ongoing_checks_if_necessary():
-            print(json.dumps(check))
+        try_checks(watcher.refresh_ongoing_checks_if_necessary())
 
 
 def main():
