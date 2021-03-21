@@ -128,46 +128,47 @@ class Watcher:
         return self._ongoing_checks
 
 
-class FixThread(threading.Thread):
-    def __init__(self, fix) -> None:
-        super().__init__()
-        self.fix = fix
-
-    def run(self) -> None:
-        print("fixing:", self.fix)
-        sp = subprocess.Popen(self.fix, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding=ENCODING)
-        for line in sp.stdout:
-            print(line, end="")
-        if sp.wait() != 0:
-            print("error! return code:", sp.returncode)
-
-
-def try_checks(checks):
+def try_checks(checks, delay=10):
     good_checks = []
     for check in checks:
         cp = subprocess.run(check.get("check"), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding=ENCODING)
         if cp.returncode == 0:
             good_checks.append(check)
         else:
-            print(f"error in check {json.dumps(check)}")
-            print(cp.stdout)
+            print("failed:", check.get("check"))
+            print("return code:", cp.returncode)
+            print("stdout:", cp.stdout.strip())
 
-            fixthread = FixThread(check.get("fix"))
-            fixthread.start()
-            while fixthread.is_alive():
-                try_checks(good_checks)
-                fixthread.join(10)
+            print("fixing:", check.get("fix"))
+            sp = subprocess.Popen(check.get("fix"), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding=ENCODING)
+
+            def blibli():
+                for line in sp.stdout:
+                    print(line, end="")
+
+            threading.Thread(target=blibli).start()
+
+            while True:
+                try:
+                    sp.wait(delay)
+                    if sp.returncode != 0:
+                        print("error! return code:", sp.returncode)
+                    break
+                except Exception:
+                    try_checks(good_checks, delay)
 
             cp = subprocess.run(check.get("check"), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding=ENCODING)
             if cp.returncode != 0:
                 raise Exception("wrooooong!")
+            else:
+                print("fix succeeded!")
 
 
-def draft(directory: Path):
+def draft(directory: Path, delay=10):
     watcher = Watcher(directory)
 
     while True:
-        try_checks(watcher.refresh_ongoing_checks_if_necessary())
+        try_checks(watcher.refresh_ongoing_checks_if_necessary(), delay)
 
 
 def main():
