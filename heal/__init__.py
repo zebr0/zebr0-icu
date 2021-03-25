@@ -129,34 +129,34 @@ class Watcher:
 
 
 def try_checks(checks, delay=10):
-    good_checks = []
-    for check in checks:
-        test, fix, rank = check.get("check"), check.get("fix"), check.get("rank")
+    for i, check in enumerate(checks):
+        test = check.get("check")
         cp = subprocess.run(test, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding=ENCODING)
         if cp.returncode == 0:
-            good_checks.append(check)
-        else:
-            print(f"[{rank}] failed({cp.returncode}): {test}")
-            for line in cp.stdout.splitlines():
-                print(f"[{rank}] output: {line}")
+            continue
 
-            print(f"[{rank}] fixing: {fix}")
-            sp = subprocess.Popen(fix, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding=ENCODING)
-            threading.Thread(target=lambda: [print(f"[{rank}] output: {line}", end="") for line in sp.stdout]).start()
+        fix, rank = check.get("fix"), check.get("rank")
+        print(f"[{rank}] failed({cp.returncode}): {test}")
+        for line in cp.stdout.splitlines():
+            print(f"[{rank}] output: {line}")
 
-            while True:
-                try:
-                    if sp.wait(delay) != 0:
-                        print(f"[{rank}] warning! fix returned code {sp.returncode}")
-                    break
-                except subprocess.TimeoutExpired:
-                    try_checks(good_checks, delay)
+        print(f"[{rank}] fixing: {fix}")
+        sp = subprocess.Popen(fix, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding=ENCODING)
+        threading.Thread(target=lambda: [print(f"[{rank}] output: {line}", end="") for line in sp.stdout]).start()
 
-            cp = subprocess.run(test, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding=ENCODING)
-            if cp.returncode != 0:
-                raise Exception("wrooooong!")
-            else:
-                print(f"[{rank}] fix successful")
+        while True:
+            try:
+                if sp.wait(delay) != 0:
+                    print(f"[{rank}] warning! fix returned code {sp.returncode}")
+                break
+            except subprocess.TimeoutExpired:
+                try_checks(checks[:i], delay)
+
+        cp = subprocess.run(test, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding=ENCODING)
+        if cp.returncode != 0:
+            raise Exception("wrooooong!")
+
+        print(f"[{rank}] fix successful")
 
 
 def draft(directory: Path, delay=10):
