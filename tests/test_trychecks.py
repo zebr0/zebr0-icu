@@ -57,16 +57,19 @@ def test_fix(tmp_path, capsys):
 
 
 DDD = """
-[5] failed(1): false
+[5] failed(1): echo doomed && false
+[5] output: doomed
 [5] fixing: false
 [5] warning! fix returned code 1
+[5] failed(1): echo doomed && false
+[5] output: doomed
 """.lstrip()
 
 
 def test_ko(capsys):
-    with pytest.raises(Exception):
+    with pytest.raises(ChildProcessError):
         heal.try_checks([
-            {"check": "false", "fix": "false", "rank": 5}
+            {"check": "echo doomed && false", "fix": "false", "rank": 5}
         ])
     assert capsys.readouterr().out == DDD
 
@@ -116,6 +119,7 @@ LLL = """
 [11] fixing: sleep 1 && touch {1}
 [6] failed(1): [ ! -f {0} ] && touch {0}
 [6] fixing: true
+[6] failed(1): [ ! -f {0} ] && touch {0}
 """.lstrip()
 
 
@@ -123,7 +127,7 @@ def test_goodchecks_exception(tmp_path, capsys):
     flag1 = tmp_path.joinpath("flag1")
     flag2 = tmp_path.joinpath("flag2")
 
-    with pytest.raises(Exception):
+    with pytest.raises(ChildProcessError):
         heal.try_checks([
             {"check": f"[ ! -f {flag1} ] && touch {flag1}", "fix": f"true", "rank": 6},  # c'est dans la récursion que ce test fail et que le test fail > exception
             {"check": f"[ -f {flag2} ]", "fix": f"sleep 1 && touch {flag2}", "rank": 11}

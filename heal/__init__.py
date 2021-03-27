@@ -154,7 +154,10 @@ def try_checks(checks, delay=10):
 
         cp = subprocess.run(test, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding=ENCODING)
         if cp.returncode != 0:
-            raise Exception("wrooooong!")
+            print(f"[{rank}] failed({cp.returncode}): {test}")
+            for line in cp.stdout.splitlines():
+                print(f"[{rank}] output: {line}")
+            raise ChildProcessError()
 
         print(f"[{rank}] fix successful")
 
