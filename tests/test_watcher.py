@@ -1,6 +1,5 @@
-import time
-
 import pytest
+import time
 
 import heal
 
@@ -60,7 +59,7 @@ def test_ongoing_modes_have_changed(tmp_path, monkeypatch, capsys):
 
     monkeypatch.setattr(heal, "filter_ongoing_modes", lambda _: ["mode1", "mode2"])
     assert watcher._ongoing_modes_have_changed()
-    assert watcher._ongoing_modes == ["mode1", "mode2"]
+    assert watcher.ongoing_modes == ["mode1", "mode2"]
     assert capsys.readouterr().out == "ongoing modes have changed: ['mode1', 'mode2']\n"
 
     monkeypatch.setattr(heal, "filter_ongoing_modes", lambda _: ["mode1"])

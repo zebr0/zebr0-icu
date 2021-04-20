@@ -89,7 +89,7 @@ class Watcher:
         self._mtime = mtime
         self._modes = modes or []
         self._checks = checks or []
-        self._ongoing_modes = ongoing_modes or []
+        self.ongoing_modes = ongoing_modes or []
         self._ongoing_checks = ongoing_checks or []
 
     def _directory_has_changed(self):
@@ -110,14 +110,14 @@ class Watcher:
 
     def _ongoing_modes_have_changed(self):
         new_ongoing_modes = filter_ongoing_modes(self._modes)
-        if new_ongoing_modes != self._ongoing_modes:
+        if new_ongoing_modes != self.ongoing_modes:
             print(f"ongoing modes have changed: {new_ongoing_modes}")
-            self._ongoing_modes = new_ongoing_modes
+            self.ongoing_modes = new_ongoing_modes
             return True
         return False
 
     def _refresh_ongoing_checks(self):
-        self._ongoing_checks = filter_ongoing_checks(self._ongoing_modes, self._checks)
+        self._ongoing_checks = filter_ongoing_checks(self.ongoing_modes, self._checks)
 
     def refresh_ongoing_checks_if_necessary(self):
         if self._directory_has_changed():
@@ -180,7 +180,7 @@ def draft(directory: Path, file, delay=10):
     watcher = Watcher(directory)
 
     while True:
-        try_checks(watcher.refresh_ongoing_checks_if_necessary(), file, watcher._ongoing_modes, delay, True)
+        try_checks(watcher.refresh_ongoing_checks_if_necessary(), file, watcher.ongoing_modes, delay, True)
 
 
 def main():
