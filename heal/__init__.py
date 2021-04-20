@@ -1,3 +1,4 @@
+import datetime
 import json
 import operator
 import subprocess
@@ -128,7 +129,15 @@ class Watcher:
         return self._ongoing_checks
 
 
-def try_checks(checks, delay=10):
+def write_file(file: Path, status, modes, utc=datetime.datetime.utcnow().isoformat()):
+    file.write_text(json.dumps({
+        "utc": utc,
+        "status": status,
+        "modes": modes
+    }, indent=2), encoding=ENCODING)
+
+
+def try_checks(checks, file, modes, delay=10, first_recursion=False):
     for i, check in enumerate(checks):
         test = check.get("check")
         cp = subprocess.run(test, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding=ENCODING)
@@ -141,6 +150,9 @@ def try_checks(checks, delay=10):
             print(f"[{rank}] output: {line}")
 
         print(f"[{rank}] fixing: {fix}")
+        if first_recursion:
+            write_file(file, "fixing", modes)
+
         sp = subprocess.Popen(fix, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding=ENCODING)
         threading.Thread(target=lambda: [print(f"[{rank}] output: {line}", end="") for line in sp.stdout]).start()
 
@@ -150,7 +162,7 @@ def try_checks(checks, delay=10):
                     print(f"[{rank}] warning! fix returned code {sp.returncode}")
                 break
             except subprocess.TimeoutExpired:
-                try_checks(checks[:i], delay)
+                try_checks(checks[:i], file, modes, delay)
 
         cp = subprocess.run(test, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding=ENCODING)
         if cp.returncode != 0:
@@ -160,13 +172,15 @@ def try_checks(checks, delay=10):
             raise ChildProcessError()
 
         print(f"[{rank}] fix successful")
+        if first_recursion:
+            write_file(file, "ok", modes)
 
 
-def draft(directory: Path, delay=10):
+def draft(directory: Path, file, delay=10):
     watcher = Watcher(directory)
 
     while True:
-        try_checks(watcher.refresh_ongoing_checks_if_necessary(), delay)
+        try_checks(watcher.refresh_ongoing_checks_if_necessary(), file, watcher._ongoing_modes, delay, True)
 
 
 def main():

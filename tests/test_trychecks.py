@@ -1,7 +1,9 @@
+import datetime
+import json
 import threading
-import time
 
 import pytest
+import time
 
 import heal
 
@@ -10,7 +12,7 @@ def test_ok(capsys):
     heal.try_checks([
         {"check": "echo one"},
         {"check": "echo two"}
-    ])
+    ], None, None, first_recursion=True)
     assert capsys.readouterr().out == ""
 
 
@@ -27,7 +29,7 @@ def test_progressive_output(tmp_path, capsys):
     def blibli():
         heal.try_checks([
             {"check": f"[ -f {flag} ]", "fix": f"echo one && sleep 1 && echo two && touch {flag}", "rank": 10}
-        ])
+        ], None, None)
 
     t = threading.Thread(target=blibli)
     t.start()
@@ -42,17 +44,21 @@ EEE = """
 [20] output: test
 [20] output: test
 [20] fixing: echo touch && touch {0}
+write_file(None, 'fixing', None)
 [20] output: touch
 [20] fix successful
+write_file(None, 'ok', None)
 """.lstrip()
 
 
-def test_fix(tmp_path, capsys):
+def test_fix(monkeypatch, tmp_path, capsys):
+    monkeypatch.setattr(heal, "write_file", lambda i, j, k: print(f"write_file{i, j, k}"))
+
     flag = tmp_path.joinpath("flag")
 
     heal.try_checks([
         {"check": f"echo test && echo test && [ -f {flag} ]", "fix": f"echo touch && touch {flag}", "rank": 20}
-    ])
+    ], None, None, first_recursion=True)
     assert capsys.readouterr().out == EEE.format(flag)
 
 
@@ -70,7 +76,7 @@ def test_ko(capsys):
     with pytest.raises(ChildProcessError):
         heal.try_checks([
             {"check": "echo doomed && false", "fix": "false", "rank": 5}
-        ])
+        ], None, None)
     assert capsys.readouterr().out == DDD
 
 
@@ -88,7 +94,7 @@ def test_goodchecks_ok(tmp_path, capsys):
     heal.try_checks([
         {"check": f"echo good >> {goodchecks}"},
         {"check": f"[ -f {flag} ]", "fix": f"sleep 1 && touch {flag}", "rank": 10}
-    ], 0.4)
+    ], None, None, 0.4)
     assert capsys.readouterr().out == FFF.format(flag)
     assert goodchecks.read_text() == "good\ngood\ngood\n"
 
@@ -110,7 +116,7 @@ def test_goodchecks_ko(tmp_path, capsys):
     heal.try_checks([
         {"check": f"[ ! -f {flag1} ] && touch {flag1}", "fix": f"rm {flag1}", "rank": 7},
         {"check": f"[ -f {flag2} ]", "fix": f"sleep 1 && touch {flag2}", "rank": 9}
-    ], 0.8)
+    ], None, None, 0.8)
     assert capsys.readouterr().out == PPP.format(flag1, flag2)
 
 
@@ -131,8 +137,16 @@ def test_goodchecks_exception(tmp_path, capsys):
         heal.try_checks([
             {"check": f"[ ! -f {flag1} ] && touch {flag1}", "fix": f"true", "rank": 6},  # c'est dans la récursion que ce test fail et que le test fail > exception
             {"check": f"[ -f {flag2} ]", "fix": f"sleep 1 && touch {flag2}", "rank": 11}
-        ], 0.4)
+        ], None, None, 0.4)
     assert threading.active_count() == 2  # le thread du fix du deuxième test reste actif
     assert capsys.readouterr().out == LLL.format(flag1, flag2)
     time.sleep(0.7)
     assert capsys.readouterr().out == ""
+
+
+def test_write_file(tmp_path):
+    file = tmp_path.joinpath("test")
+    utc = datetime.datetime.utcnow().isoformat()
+    heal.write_file(file, "ok", ["one", "two"], utc)
+
+    assert json.loads(file.read_text()) == {"utc": utc, "status": "ok", "modes": ["one", "two"]}
