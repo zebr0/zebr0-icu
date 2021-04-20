@@ -177,11 +177,29 @@ def try_checks(checks, file, modes, delay=10, first_recursion=False):
         write_file(file, "ok", modes)
 
 
-def draft(directory: Path, file, delay=10):
+def is_file_ko(file: Path):
+    try:
+        if json.loads(file.read_text(encoding=ENCODING)).get("status") == "ko":
+            return True
+    except (OSError, ValueError):
+        pass
+
+
+def heal(directory: Path, file, event, delay=10):
+    if is_file_ko(file):
+        print("system already in failed status, exiting")
+        return
+
     watcher = Watcher(directory)
 
-    while True:
-        try_checks(watcher.refresh_ongoing_checks_if_necessary(), file, watcher.ongoing_modes, delay, True)
+    try:
+        while True:
+            try_checks(watcher.refresh_ongoing_checks_if_necessary(), file, watcher.ongoing_modes, delay, True)
+            if event.wait(delay):
+                break
+    except ChildProcessError:
+        write_file(file, "ko", watcher.ongoing_modes)
+        print("critical failure, exiting")
 
 
 def main():
