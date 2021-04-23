@@ -8,12 +8,14 @@ import time
 import heal
 
 
-def test_ok(capsys):
+def test_ok(monkeypatch, capsys):
+    monkeypatch.setattr(heal, "write_file", lambda i, j, k: print(f"write_file{i, j, k}"))
+
     heal.try_checks([
         {"check": "echo one"},
         {"check": "echo two"}
     ], None, None, first_recursion=True)
-    assert capsys.readouterr().out == ""
+    assert capsys.readouterr().out == "write_file(None, 'ok', None)\n"
 
 
 III = """

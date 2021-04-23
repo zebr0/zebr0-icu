@@ -172,8 +172,9 @@ def try_checks(checks, file, modes, delay=10, first_recursion=False):
             raise ChildProcessError()
 
         print(f"[{rank}] fix successful")
-        if first_recursion:
-            write_file(file, "ok", modes)
+
+    if first_recursion:
+        write_file(file, "ok", modes)
 
 
 def draft(directory: Path, file, delay=10):
