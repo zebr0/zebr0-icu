@@ -81,54 +81,56 @@ def test_read_config_ko_not_a_list(tmp_path, capsys):
 
 
 FILTER_MODES_AND_CHECKS_OK_OUTPUT = """
-filtering modes and checks from config
-done filtering modes and checks from config
+filtering modes and checks
+done
 """.lstrip()
 
 
 def test_filter_modes_and_checks_ok(capsys):
-    modes, checks = heal.filter_modes_and_checks([{"check": "", "fix": "", "rank": "2"},
-                                                  {"check": "b", "fix": "", "rank": "1", "when": ""},
-                                                  {"check": "a", "fix": "", "rank": "1", "when": ""},
-                                                  {"mode": "", "if": ""}])
+    modes, checks = heal.filter_modes_and_checks([{"check": "sed do eiusmod tempor", "fix": "incididunt ut labore et dolore magna aliqua", "rank": "2"},
+                                                  {"check": "lorem ipsum dolor sit amet", "fix": "consectetur adipiscing elit", "rank": "1", "when": "alpha"},
+                                                  {"mode": "beta", "if": "ut enim"},
+                                                  {"mode": "alpha", "if": "ad minim veniam"}])
 
-    assert modes == [{"mode": "", "if": ""}]
-    assert checks == [{"check": "a", "fix": "", "rank": 1, "when": ""},
-                      {"check": "b", "fix": "", "rank": 1, "when": ""},
-                      {"check": "", "fix": "", "rank": 2}]
+    assert modes == [{"mode": "alpha", "if": "ad minim veniam"},
+                     {"mode": "beta", "if": "ut enim"}]
+    assert checks == [{"check": "lorem ipsum dolor sit amet", "fix": "consectetur adipiscing elit", "rank": 1, "when": "alpha"},
+                      {"check": "sed do eiusmod tempor", "fix": "incididunt ut labore et dolore magna aliqua", "rank": 2}]
     assert capsys.readouterr().out == FILTER_MODES_AND_CHECKS_OK_OUTPUT
 
 
 FILTER_MODES_AND_CHECKS_KO_OUTPUT = """
-filtering modes and checks from config
-ignored, keys must match {"mode", "if"} or {"check", "fix", "rank"} or {"check", "fix", "rank", "when"}: {"check": "", "fix": ""}
-ignored, keys must match {"mode", "if"} or {"check", "fix", "rank"} or {"check", "fix", "rank", "when"}: {"check": "", "fix": "", "rank": "10", "then": ""}
-ignored, rank must be an integer: {"check": "", "fix": "", "rank": "max"}
-ignored, all values must be strings: {"check": "", "fix": "", "rank": {}}
-ignored, all values must be strings: {"check": "", "fix": "", "rank": []}
+filtering modes and checks
+ignored, not a dictionary: "check"
+ignored, not a dictionary: []
+ignored, values cannot be lists or dictionaries: {"check": "", "fix": "", "rank": {}}
+ignored, values cannot be lists or dictionaries: {"check": "", "fix": "", "rank": []}
 ignored, keys must match {"mode", "if"} or {"check", "fix", "rank"} or {"check", "fix", "rank", "when"}: {"mode": ""}
 ignored, keys must match {"mode", "if"} or {"check", "fix", "rank"} or {"check", "fix", "rank", "when"}: {"mode": "", "if": "", "bonus": ""}
+ignored, keys must match {"mode", "if"} or {"check", "fix", "rank"} or {"check", "fix", "rank", "when"}: {"check": "", "fix": ""}
+ignored, keys must match {"mode", "if"} or {"check", "fix", "rank"} or {"check", "fix", "rank", "when"}: {"check": "", "fix": "", "rank": "10", "then": ""}
 ignored, keys must match {"mode", "if"} or {"check", "fix", "rank"} or {"check", "fix", "rank", "when"}: {"check": "", "fix": "", "rank": "10", "mode": "", "if": ""}
 ignored, keys must match {"mode", "if"} or {"check", "fix", "rank"} or {"check", "fix", "rank", "when"}: {}
 ignored, keys must match {"mode", "if"} or {"check", "fix", "rank"} or {"check", "fix", "rank", "when"}: {"how": ""}
-ignored, not a dictionary: "check"
-done filtering modes and checks from config
+ignored, rank must be an integer: {"check": "", "fix": "", "rank": "max"}
+done
 """.lstrip()
 
 
 def test_filter_modes_and_checks_ko(capsys):
     assert heal.filter_modes_and_checks([
-        {"check": "", "fix": ""},
-        {"check": "", "fix": "", "rank": "10", "then": ""},
-        {"check": "", "fix": "", "rank": "max"},
+        "check",
+        [],
         {"check": "", "fix": "", "rank": {}},
         {"check": "", "fix": "", "rank": []},
         {"mode": ""},
         {"mode": "", "if": "", "bonus": ""},
+        {"check": "", "fix": ""},
+        {"check": "", "fix": "", "rank": "10", "then": ""},
         {"check": "", "fix": "", "rank": "10", "mode": "", "if": ""},
         {},
         {"how": ""},
-        "check"
+        {"check": "", "fix": "", "rank": "max"},
     ]) == ([], [])
     assert capsys.readouterr().out == FILTER_MODES_AND_CHECKS_KO_OUTPUT
 
@@ -236,8 +238,8 @@ REFRESH_ONGOING_CHECKS_IF_NECESSARY_OUTPUT_1 = """
 directory {0} has changed
 reading configuration
 done
-filtering modes and checks from config
-done filtering modes and checks from config
+filtering modes and checks
+done
 """.lstrip()
 
 REFRESH_ONGOING_CHECKS_IF_NECESSARY_CHECKS_CHANGED = """
@@ -255,8 +257,8 @@ REFRESH_ONGOING_CHECKS_IF_NECESSARY_OUTPUT_2 = """
 directory {0} has changed
 reading configuration
 done
-filtering modes and checks from config
-done filtering modes and checks from config
+filtering modes and checks
+done
 checks have changed
 filtering ongoing checks from ongoing modes
 active:  {{"check": "just adding a check without mode", "fix": "whatever", "rank": 1}}
@@ -277,8 +279,8 @@ REFRESH_ONGOING_CHECKS_IF_NECESSARY_OUTPUT_3 = """
 directory {0} has changed
 reading configuration
 done
-filtering modes and checks from config
-done filtering modes and checks from config
+filtering modes and checks
+done
 checks have changed
 ongoing modes have changed: ['basic']
 filtering ongoing checks from ongoing modes
@@ -297,8 +299,8 @@ REFRESH_ONGOING_CHECKS_IF_NECESSARY_OUTPUT_4 = """
 directory {0} has changed
 reading configuration
 done
-filtering modes and checks from config
-done filtering modes and checks from config
+filtering modes and checks
+done
 ongoing modes have changed: ['basic', 'special']
 filtering ongoing checks from ongoing modes
 active:  {{"check": "just adding a check without mode", "fix": "whatever", "rank": 1}}

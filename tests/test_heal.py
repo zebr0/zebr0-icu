@@ -16,8 +16,8 @@ EEE = """
 directory {0} has changed
 reading configuration
 done
-filtering modes and checks from config
-done filtering modes and checks from config
+filtering modes and checks
+done
 try_checks([], PosixPath('{0}'), [], 0.2, True)
 try_checks([], PosixPath('{0}'), [], 0.2, True)
 """.lstrip()
@@ -40,8 +40,8 @@ FFF = """
 directory {0} has changed
 reading configuration
 done
-filtering modes and checks from config
-done filtering modes and checks from config
+filtering modes and checks
+done
 write_file(PosixPath('{0}'), 'ko', [])
 critical failure, exiting
 """.lstrip()

@@ -1,13 +1,13 @@
 import argparse
 import datetime
 import json
-import operator
 import pathlib
 import signal
 import subprocess
 import threading
+from operator import itemgetter
 from pathlib import Path
-from typing import List, Any
+from typing import List, Any, Tuple
 
 import yaml
 
@@ -35,36 +35,33 @@ def read_config(directory: Path) -> List[Any]:
     return config
 
 
-def filter_modes_and_checks(config):
-    print("filtering modes and checks from config")
+def filter_modes_and_checks(config: List[Any]) -> Tuple[List[dict], List[dict]]:
+    print("filtering modes and checks")
     modes, checks = [], []
 
     for item in config:
-        j = json.dumps(item)
-
         if not isinstance(item, dict):
-            print("ignored, not a dictionary:", j)
+            print("ignored, not a dictionary:", json.dumps(item))
             continue
 
         if not all(isinstance(value, str) for value in item.values()):
-            print("ignored, all values must be strings:", j)
+            print("ignored, values cannot be lists or dictionaries:", json.dumps(item))
             continue
 
         keys = item.keys()
-
         if keys == {"mode", "if"}:  # "mode" and "if" are mandatory
             modes.append(item)
         elif keys == {"check", "fix", "rank"} or keys == {"check", "fix", "rank", "when"}:  # "when" is optional
             try:
-                item["rank"] = int(item["rank"])
+                item["rank"] = int(item["rank"])  # converts the rank to an integer so that checks can be sorted
                 checks.append(item)
             except ValueError:
-                print("ignored, rank must be an integer:", j)
+                print("ignored, rank must be an integer:", json.dumps(item))
         else:
-            print('ignored, keys must match {"mode", "if"} or {"check", "fix", "rank"} or {"check", "fix", "rank", "when"}:', j)
+            print('ignored, keys must match {"mode", "if"} or {"check", "fix", "rank"} or {"check", "fix", "rank", "when"}:', json.dumps(item))
 
-    print("done filtering modes and checks from config")
-    return modes, sorted(checks, key=operator.itemgetter("rank", "check"))
+    print("done")
+    return sorted(modes, key=itemgetter("mode")), sorted(checks, key=itemgetter("rank"))
 
 
 def filter_ongoing_modes(modes):
