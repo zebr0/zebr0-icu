@@ -7,30 +7,31 @@ import signal
 import subprocess
 import threading
 from pathlib import Path
+from typing import List, Any
 
 import yaml
 
 ENCODING = "utf-8"
 
 
-def read_config_from_disk(directory: Path):
-    print("reading configuration from directory:", directory)
+def read_config(directory: Path) -> List[Any]:
+    print("reading configuration")
     config = []
 
     for path in directory.iterdir():
         try:
             text = path.read_text(encoding=ENCODING)
-        except (OSError, ValueError) as e:
-            print(path, "ignored:", e)
+        except (OSError, ValueError) as error:
+            print(f"'{path.relative_to(directory)}' ignored: {error}")
             continue
 
-        data = yaml.load(text, Loader=yaml.BaseLoader)  # uses the yaml baseloader to preserve all strings
+        data = yaml.load(text, Loader=yaml.BaseLoader)
         if not isinstance(data, list):
-            print(path, "ignored: not a proper yaml or json list")
+            print(f"'{path.relative_to(directory)}' ignored: not a proper yaml or json list")
         else:
             config.extend(data)
 
-    print("done reading configuration from directory:", directory)
+    print("done")
     return config
 
 
@@ -104,7 +105,7 @@ class Watcher:
         return False
 
     def _checks_have_changed(self):
-        self._modes, new_checks = filter_modes_and_checks(read_config_from_disk(self._directory))
+        self._modes, new_checks = filter_modes_and_checks(read_config(self._directory))
         if new_checks != self._checks:
             print("checks have changed")
             self._checks = new_checks

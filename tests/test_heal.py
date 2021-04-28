@@ -14,8 +14,8 @@ def test_ko_before(monkeypatch, tmp_path, capsys):
 
 EEE = """
 directory {0} has changed
-reading configuration from directory: {0}
-done reading configuration from directory: {0}
+reading configuration
+done
 filtering modes and checks from config
 done filtering modes and checks from config
 try_checks([], PosixPath('{0}'), [], 0.2, True)
@@ -38,8 +38,8 @@ def test_ok(monkeypatch, tmp_path, capsys):
 
 FFF = """
 directory {0} has changed
-reading configuration from directory: {0}
-done reading configuration from directory: {0}
+reading configuration
+done
 filtering modes and checks from config
 done filtering modes and checks from config
 write_file(PosixPath('{0}'), 'ko', [])
