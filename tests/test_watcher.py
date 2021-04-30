@@ -141,7 +141,7 @@ def test_filter_ongoing_modes_ok():
         {"mode": "two", "if": "/bin/false"},
         {"mode": "three", "if": "/bin/false"},
         {"mode": "four", "if": "/bin/true"}
-    ]) == ["four", "one"]
+    ]) == ["one", "four"]
 
 
 FILTER_ONGOING_CHECKS_OK_OUTPUT = """

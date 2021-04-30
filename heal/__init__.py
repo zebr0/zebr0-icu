@@ -65,7 +65,7 @@ def filter_modes_and_checks(config: List[Any]) -> Tuple[List[dict], List[dict]]:
 
 
 def filter_ongoing_modes(modes):
-    return sorted(mode.get("mode") for mode in modes if subprocess.run(mode.get("if"), shell=True).returncode == 0)
+    return [mode.get("mode") for mode in modes if subprocess.run(mode.get("if"), shell=True).returncode == 0]
 
 
 def filter_ongoing_checks(ongoing_modes, checks):
