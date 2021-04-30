@@ -80,6 +80,11 @@ def test_read_config_ko_not_a_list(tmp_path, capsys):
     assert capsys.readouterr().out == READ_CONFIG_KO_NOT_A_LIST_OUTPUT
 
 
+def test_read_config_ok_empty(tmp_path, capsys):
+    assert heal.read_config(tmp_path) == []
+    assert capsys.readouterr().out == READ_CONFIG_OK_OUTPUT
+
+
 FILTER_MODES_AND_CHECKS_OK_OUTPUT = """
 filtering modes and checks
 done
@@ -135,6 +140,11 @@ def test_filter_modes_and_checks_ko(capsys):
     assert capsys.readouterr().out == FILTER_MODES_AND_CHECKS_KO_OUTPUT
 
 
+def test_filter_modes_and_checks_ok_empty(capsys):
+    assert heal.filter_modes_and_checks([]) == ([], [])
+    assert capsys.readouterr().out == FILTER_MODES_AND_CHECKS_OK_OUTPUT
+
+
 def test_filter_ongoing_modes_ok():
     assert heal.filter_ongoing_modes([
         {"mode": "one", "if": "/bin/true"},
@@ -142,6 +152,10 @@ def test_filter_ongoing_modes_ok():
         {"mode": "three", "if": "/bin/false"},
         {"mode": "four", "if": "/bin/true"}
     ]) == ["one", "four"]
+
+
+def test_filter_ongoing_modes_ok_empty():
+    assert heal.filter_ongoing_modes([]) == []
 
 
 FILTER_ONGOING_CHECKS_OK_OUTPUT = """
@@ -161,6 +175,17 @@ def test_filter_ongoing_checks_ok(capsys):
     assert heal.filter_ongoing_checks(ongoing_modes, checks) == [{"check": "", "fix": "", "rank": 1},
                                                                  {"check": "", "fix": "", "rank": 2, "when": "alpha"}]
     assert capsys.readouterr().out == FILTER_ONGOING_CHECKS_OK_OUTPUT
+
+
+FILTER_ONGOING_CHECKS_OK_EMPTY_OUTPUT = """
+filtering ongoing checks
+done
+""".lstrip()
+
+
+def test_filter_ongoing_checks_ok_empty(capsys):
+    assert heal.filter_ongoing_checks([], []) == []
+    assert capsys.readouterr().out == FILTER_ONGOING_CHECKS_OK_EMPTY_OUTPUT
 
 
 def test_directory_has_changed(tmp_path, capsys):
