@@ -82,16 +82,16 @@ def filter_ongoing_checks(ongoing_modes, checks):
 
 
 class Watcher:
-    def __init__(self, directory, mtime=0, modes=None, checks=None, ongoing_modes=None, ongoing_checks=None):
+    def __init__(self, directory):
         if not directory.is_dir():
             raise ValueError("directory must exist")
 
         self._directory = directory
-        self._mtime = mtime
-        self._modes = modes or []
-        self._checks = checks or []
-        self.ongoing_modes = ongoing_modes or []
-        self._ongoing_checks = ongoing_checks or []
+        self._mtime = 0
+        self._modes = []
+        self._checks = []
+        self.ongoing_modes = []
+        self._ongoing_checks = []
 
     def _directory_has_changed(self):
         new_mtime = self._directory.stat().st_mtime
