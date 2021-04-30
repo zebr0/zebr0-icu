@@ -69,15 +69,15 @@ def filter_ongoing_modes(modes):
 
 
 def filter_ongoing_checks(ongoing_modes, checks):
-    print("filtering ongoing checks from ongoing modes")
+    print("filtering ongoing checks")
     ongoing_checks = []
 
     for check in checks:
         if not check.get("when") or check.get("when") in ongoing_modes:
-            print("active: ", json.dumps(check))
+            print("active:", json.dumps(check))
             ongoing_checks.append(check)
 
-    print("done filtering ongoing checks from ongoing modes")
+    print("done")
     return ongoing_checks
 
 

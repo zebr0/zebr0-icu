@@ -145,21 +145,21 @@ def test_filter_ongoing_modes_ok():
 
 
 FILTER_ONGOING_CHECKS_OK_OUTPUT = """
-filtering ongoing checks from ongoing modes
-active:  {"check": "a", "fix": "", "rank": 1}
-active:  {"check": "b", "fix": "", "rank": 2, "when": "one"}
-done filtering ongoing checks from ongoing modes
+filtering ongoing checks
+active: {"check": "", "fix": "", "rank": 1}
+active: {"check": "", "fix": "", "rank": 2, "when": "alpha"}
+done
 """.lstrip()
 
 
 def test_filter_ongoing_checks_ok(capsys):
-    ongoing_modes = ["one"]
-    checks = [{"check": "a", "fix": "", "rank": 1},
-              {"check": "b", "fix": "", "rank": 2, "when": "one"},
-              {"check": "c", "fix": "", "rank": 3, "when": "two"}]
+    ongoing_modes = ["alpha"]
+    checks = [{"check": "", "fix": "", "rank": 1},
+              {"check": "", "fix": "", "rank": 2, "when": "alpha"},
+              {"check": "", "fix": "", "rank": 3, "when": "beta"}]
 
-    assert heal.filter_ongoing_checks(ongoing_modes, checks) == [{"check": "a", "fix": "", "rank": 1},
-                                                                 {"check": "b", "fix": "", "rank": 2, "when": "one"}]
+    assert heal.filter_ongoing_checks(ongoing_modes, checks) == [{"check": "", "fix": "", "rank": 1},
+                                                                 {"check": "", "fix": "", "rank": 2, "when": "alpha"}]
     assert capsys.readouterr().out == FILTER_ONGOING_CHECKS_OK_OUTPUT
 
 
@@ -260,9 +260,9 @@ done
 filtering modes and checks
 done
 checks have changed
-filtering ongoing checks from ongoing modes
-active:  {{"check": "just adding a check without mode", "fix": "whatever", "rank": 1}}
-done filtering ongoing checks from ongoing modes
+filtering ongoing checks
+active: {{"check": "just adding a check without mode", "fix": "whatever", "rank": 1}}
+done
 """.lstrip()
 
 REFRESH_ONGOING_CHECKS_IF_NECESSARY_CHECKS_AND_MODES_CHANGED = """
@@ -283,10 +283,10 @@ filtering modes and checks
 done
 checks have changed
 ongoing modes have changed: ['basic']
-filtering ongoing checks from ongoing modes
-active:  {{"check": "just adding a check without mode", "fix": "whatever", "rank": 1}}
-active:  {{"check": "adding a check with mode", "fix": "whatever", "rank": 2, "when": "basic"}}
-done filtering ongoing checks from ongoing modes
+filtering ongoing checks
+active: {{"check": "just adding a check without mode", "fix": "whatever", "rank": 1}}
+active: {{"check": "adding a check with mode", "fix": "whatever", "rank": 2, "when": "basic"}}
+done
 """.lstrip()
 
 REFRESH_ONGOING_CHECKS_IF_NECESSARY_ONLY_MODES_CHANGED = """
@@ -302,19 +302,19 @@ done
 filtering modes and checks
 done
 ongoing modes have changed: ['basic', 'special']
-filtering ongoing checks from ongoing modes
-active:  {{"check": "just adding a check without mode", "fix": "whatever", "rank": 1}}
-active:  {{"check": "adding a check with mode", "fix": "whatever", "rank": 2, "when": "basic"}}
-active:  {{"check": "adding a check for later", "fix": "whatever", "rank": 10, "when": "special"}}
-done filtering ongoing checks from ongoing modes
+filtering ongoing checks
+active: {{"check": "just adding a check without mode", "fix": "whatever", "rank": 1}}
+active: {{"check": "adding a check with mode", "fix": "whatever", "rank": 2, "when": "basic"}}
+active: {{"check": "adding a check for later", "fix": "whatever", "rank": 10, "when": "special"}}
+done
 """.lstrip()
 
 REFRESH_ONGOING_CHECKS_IF_NECESSARY_OUTPUT_5 = """
 ongoing modes have changed: ['basic']
-filtering ongoing checks from ongoing modes
-active:  {"check": "just adding a check without mode", "fix": "whatever", "rank": 1}
-active:  {"check": "adding a check with mode", "fix": "whatever", "rank": 2, "when": "basic"}
-done filtering ongoing checks from ongoing modes
+filtering ongoing checks
+active: {"check": "just adding a check without mode", "fix": "whatever", "rank": 1}
+active: {"check": "adding a check with mode", "fix": "whatever", "rank": 2, "when": "basic"}
+done
 """.lstrip()
 
 
