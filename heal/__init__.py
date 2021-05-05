@@ -83,9 +83,6 @@ def filter_ongoing_checks(ongoing_modes, checks):
 
 class Watcher:
     def __init__(self, directory):
-        if not directory.is_dir():
-            raise ValueError("directory must exist")
-
         self._directory = directory
         self._mtime = 0
         self._modes = []
@@ -189,6 +186,10 @@ def is_file_ko(file: Path):
 def heal(directory: Path, file, event, delay=10):
     if is_file_ko(file):
         print("system already in failed status, exiting")
+        return
+
+    if not directory.is_dir():
+        print("directory must exist")
         return
 
     watcher = Watcher(directory)

@@ -1,6 +1,5 @@
 import pathlib
 
-import pytest
 import time
 
 import heal
@@ -252,11 +251,6 @@ def test_ongoing_modes_have_changed(tmp_path, monkeypatch, capsys):
 
     assert not watcher._ongoing_modes_have_changed()
     assert capsys.readouterr().out == ""
-
-
-def test_refresh_ongoing_checks_if_necessary_ko(tmp_path):
-    with pytest.raises(ValueError):
-        heal.Watcher(tmp_path.joinpath("missing_directory"))
 
 
 REFRESH_ONGOING_CHECKS_IF_NECESSARY_OUTPUT_1 = """

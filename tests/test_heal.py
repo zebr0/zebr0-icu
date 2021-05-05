@@ -5,6 +5,11 @@ import time
 import heal
 
 
+def test_not_a_directory(tmp_path, capsys):
+    heal.heal(tmp_path.joinpath("fake"), tmp_path, None)
+    assert capsys.readouterr().out == "directory must exist\n"
+
+
 def test_ko_before(monkeypatch, tmp_path, capsys):
     monkeypatch.setattr(heal, "is_file_ko", lambda _: True)
     heal.heal(tmp_path, tmp_path, None)
