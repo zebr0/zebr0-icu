@@ -18,7 +18,8 @@ def test_ko_before(monkeypatch, tmp_path, capsys):
 
 
 EEE = """
-directory {0} has changed
+watching configuration directory: {0}
+configuration directory has changed
 reading configuration
 done
 filtering modes and checks
@@ -42,7 +43,8 @@ def test_ok(monkeypatch, tmp_path, capsys):
 
 
 FFF = """
-directory {0} has changed
+watching configuration directory: {0}
+configuration directory has changed
 reading configuration
 done
 filtering modes and checks

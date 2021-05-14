@@ -64,67 +64,60 @@ def filter_modes_and_checks(config: List[Any]) -> Tuple[List[dict], List[dict]]:
     return sorted(modes, key=itemgetter("mode")), sorted(checks, key=itemgetter("rank"))
 
 
-def filter_ongoing_modes(modes):
+def filter_current_modes(modes):
     return [mode.get("mode") for mode in modes if subprocess.run(mode.get("if"), shell=True).returncode == 0]
 
 
-def filter_ongoing_checks(ongoing_modes, checks):
-    print("filtering ongoing checks")
-    ongoing_checks = []
+def filter_current_checks(current_modes, checks):
+    print("filtering current checks")
+    current_checks = []
 
     for check in checks:
-        if not check.get("when") or check.get("when") in ongoing_modes:
+        if not check.get("when") or check.get("when") in current_modes:
             print("active:", json.dumps(check))
-            ongoing_checks.append(check)
+            current_checks.append(check)
 
     print("done")
-    return ongoing_checks
+    return current_checks
 
 
 class Watcher:
     def __init__(self, directory):
-        self._directory = directory
-        self._mtime = 0
-        self._modes = []
-        self._checks = []
-        self.ongoing_modes = []
-        self._ongoing_checks = []
+        self.directory = directory
+        self.mtime = 0
+        self.modes = []
+        self.checks = []
+        self.current_modes = []
+        self.current_checks = []
 
-    def _directory_has_changed(self):
-        new_mtime = self._directory.stat().st_mtime
-        if new_mtime != self._mtime:
-            print(f"directory {self._directory} has changed")
-            self._mtime = new_mtime
-            return True
-        return False
+    def directory_has_changed(self):
+        new_mtime = self.directory.stat().st_mtime
+        if new_mtime == self.mtime:
+            return False
+        print("configuration directory has changed")
+        self.mtime = new_mtime
+        return True
 
-    def _checks_have_changed(self):
-        self._modes, new_checks = filter_modes_and_checks(read_config(self._directory))
-        if new_checks != self._checks:
-            print("checks have changed")
-            self._checks = new_checks
-            return True
-        return False
+    def checks_have_changed(self):
+        self.modes, new_checks = filter_modes_and_checks(read_config(self.directory))
+        if new_checks == self.checks:
+            return False
+        print("checks have changed")
+        self.checks = new_checks
+        return True
 
-    def _ongoing_modes_have_changed(self):
-        new_ongoing_modes = filter_ongoing_modes(self._modes)
-        if new_ongoing_modes != self.ongoing_modes:
-            print(f"ongoing modes have changed: {new_ongoing_modes}")
-            self.ongoing_modes = new_ongoing_modes
-            return True
-        return False
+    def current_modes_have_changed(self):
+        new_current_modes = filter_current_modes(self.modes)
+        if new_current_modes == self.current_modes:
+            return False
+        print("current modes have changed:", new_current_modes)
+        self.current_modes = new_current_modes
+        return True
 
-    def _refresh_ongoing_checks(self):
-        self._ongoing_checks = filter_ongoing_checks(self.ongoing_modes, self._checks)
-
-    def refresh_ongoing_checks_if_necessary(self):
-        if self._directory_has_changed():
-            if self._checks_have_changed() | self._ongoing_modes_have_changed():
-                self._refresh_ongoing_checks()
-        elif self._ongoing_modes_have_changed():
-            self._refresh_ongoing_checks()
-
-        return self._ongoing_checks
+    def refresh_current_checks_if_necessary(self):
+        if (self.directory_has_changed() and self.checks_have_changed()) | self.current_modes_have_changed():
+            self.current_checks = filter_current_checks(self.current_modes, self.checks)
+        return self.current_checks
 
 
 def write_file(file: Path, status, modes, utc=datetime.datetime.utcnow().isoformat()):
@@ -192,15 +185,16 @@ def heal(directory: Path, file, event, delay=10):
         print("directory must exist")
         return
 
+    print("watching configuration directory:", directory)
     watcher = Watcher(directory)
 
     try:
         while True:
-            try_checks(watcher.refresh_ongoing_checks_if_necessary(), file, watcher.ongoing_modes, delay, True)
+            try_checks(watcher.refresh_current_checks_if_necessary(), file, watcher.current_modes, delay, True)
             if event.wait(delay):
                 break
     except ChildProcessError:
-        write_file(file, "ko", watcher.ongoing_modes)
+        write_file(file, "ko", watcher.current_modes)
         print("critical failure, exiting")
 
 

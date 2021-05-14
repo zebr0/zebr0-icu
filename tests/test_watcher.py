@@ -144,8 +144,8 @@ def test_filter_modes_and_checks_ok_empty(capsys):
     assert capsys.readouterr().out == FILTER_MODES_AND_CHECKS_OK_OUTPUT
 
 
-def test_filter_ongoing_modes_ok():
-    assert heal.filter_ongoing_modes([
+def test_filter_current_modes_ok():
+    assert heal.filter_current_modes([
         {"mode": "one", "if": "/bin/true"},
         {"mode": "two", "if": "/bin/false"},
         {"mode": "three", "if": "/bin/false"},
@@ -153,56 +153,56 @@ def test_filter_ongoing_modes_ok():
     ]) == ["one", "four"]
 
 
-def test_filter_ongoing_modes_ok_empty():
-    assert heal.filter_ongoing_modes([]) == []
+def test_filter_current_modes_ok_empty():
+    assert heal.filter_current_modes([]) == []
 
 
-FILTER_ONGOING_CHECKS_OK_OUTPUT = """
-filtering ongoing checks
+FILTER_CURRENT_CHECKS_OK_OUTPUT = """
+filtering current checks
 active: {"check": "", "fix": "", "rank": 1}
 active: {"check": "", "fix": "", "rank": 2, "when": "alpha"}
 done
 """.lstrip()
 
 
-def test_filter_ongoing_checks_ok(capsys):
-    ongoing_modes = ["alpha"]
+def test_filter_current_checks_ok(capsys):
+    current_modes = ["alpha"]
     checks = [{"check": "", "fix": "", "rank": 1},
               {"check": "", "fix": "", "rank": 2, "when": "alpha"},
               {"check": "", "fix": "", "rank": 3, "when": "beta"}]
 
-    assert heal.filter_ongoing_checks(ongoing_modes, checks) == [{"check": "", "fix": "", "rank": 1},
+    assert heal.filter_current_checks(current_modes, checks) == [{"check": "", "fix": "", "rank": 1},
                                                                  {"check": "", "fix": "", "rank": 2, "when": "alpha"}]
-    assert capsys.readouterr().out == FILTER_ONGOING_CHECKS_OK_OUTPUT
+    assert capsys.readouterr().out == FILTER_CURRENT_CHECKS_OK_OUTPUT
 
 
-FILTER_ONGOING_CHECKS_OK_EMPTY_OUTPUT = """
-filtering ongoing checks
+FILTER_CURRENT_CHECKS_OK_EMPTY_OUTPUT = """
+filtering current checks
 done
 """.lstrip()
 
 
-def test_filter_ongoing_checks_ok_empty(capsys):
-    assert heal.filter_ongoing_checks([], []) == []
-    assert capsys.readouterr().out == FILTER_ONGOING_CHECKS_OK_EMPTY_OUTPUT
+def test_filter_current_checks_ok_empty(capsys):
+    assert heal.filter_current_checks([], []) == []
+    assert capsys.readouterr().out == FILTER_CURRENT_CHECKS_OK_EMPTY_OUTPUT
 
 
 def test_directory_has_changed(tmp_path, capsys):
     watcher = heal.Watcher(tmp_path)
 
-    assert watcher._directory_has_changed()
-    assert watcher._mtime == tmp_path.stat().st_mtime
-    assert capsys.readouterr().out == f"directory {tmp_path} has changed\n"
+    assert watcher.directory_has_changed()
+    assert watcher.mtime == tmp_path.stat().st_mtime
+    assert capsys.readouterr().out == "configuration directory has changed\n"
 
     time.sleep(0.01)
-    assert not watcher._directory_has_changed()
+    assert not watcher.directory_has_changed()
     assert capsys.readouterr().out == ""
 
     time.sleep(0.01)
     tmp_path.joinpath("dummy").write_text("dummy")
 
-    assert watcher._directory_has_changed()
-    assert capsys.readouterr().out == f"directory {tmp_path} has changed\n"
+    assert watcher.directory_has_changed()
+    assert capsys.readouterr().out == "configuration directory has changed\n"
 
 
 def test_checks_have_changed(tmp_path, monkeypatch, capsys):
@@ -211,57 +211,57 @@ def test_checks_have_changed(tmp_path, monkeypatch, capsys):
     watcher = heal.Watcher(tmp_path)
 
     monkeypatch.setattr(heal, "filter_modes_and_checks", lambda _: ([], []))
-    assert not watcher._checks_have_changed()
+    assert not watcher.checks_have_changed()
     assert capsys.readouterr().out == ""
 
     monkeypatch.setattr(heal, "filter_modes_and_checks", lambda _: (["mode"], []))
-    assert not watcher._checks_have_changed()
-    assert watcher._modes == ["mode"]
+    assert not watcher.checks_have_changed()
+    assert watcher.modes == ["mode"]
     assert capsys.readouterr().out == ""
 
     monkeypatch.setattr(heal, "filter_modes_and_checks", lambda _: (["mode"], ["check1", "check2"]))
-    assert watcher._checks_have_changed()
-    assert watcher._checks == ["check1", "check2"]
+    assert watcher.checks_have_changed()
+    assert watcher.checks == ["check1", "check2"]
     assert capsys.readouterr().out == "checks have changed\n"
 
     monkeypatch.setattr(heal, "filter_modes_and_checks", lambda _: (["mode"], ["check1"]))
-    assert watcher._checks_have_changed()
-    assert watcher._checks == ["check1"]
+    assert watcher.checks_have_changed()
+    assert watcher.checks == ["check1"]
     assert capsys.readouterr().out == "checks have changed\n"
 
-    assert not watcher._checks_have_changed()
+    assert not watcher.checks_have_changed()
     assert capsys.readouterr().out == ""
 
 
-def test_ongoing_modes_have_changed(tmp_path, monkeypatch, capsys):
+def test_current_modes_have_changed(tmp_path, monkeypatch, capsys):
     watcher = heal.Watcher(tmp_path)
 
-    monkeypatch.setattr(heal, "filter_ongoing_modes", lambda _: [])
-    assert not watcher._ongoing_modes_have_changed()
+    monkeypatch.setattr(heal, "filter_current_modes", lambda _: [])
+    assert not watcher.current_modes_have_changed()
     assert capsys.readouterr().out == ""
 
-    monkeypatch.setattr(heal, "filter_ongoing_modes", lambda _: ["mode1", "mode2"])
-    assert watcher._ongoing_modes_have_changed()
-    assert watcher.ongoing_modes == ["mode1", "mode2"]
-    assert capsys.readouterr().out == "ongoing modes have changed: ['mode1', 'mode2']\n"
+    monkeypatch.setattr(heal, "filter_current_modes", lambda _: ["mode1", "mode2"])
+    assert watcher.current_modes_have_changed()
+    assert watcher.current_modes == ["mode1", "mode2"]
+    assert capsys.readouterr().out == "current modes have changed: ['mode1', 'mode2']\n"
 
-    monkeypatch.setattr(heal, "filter_ongoing_modes", lambda _: ["mode1"])
-    assert watcher._ongoing_modes_have_changed()
-    assert capsys.readouterr().out == "ongoing modes have changed: ['mode1']\n"
+    monkeypatch.setattr(heal, "filter_current_modes", lambda _: ["mode1"])
+    assert watcher.current_modes_have_changed()
+    assert capsys.readouterr().out == "current modes have changed: ['mode1']\n"
 
-    assert not watcher._ongoing_modes_have_changed()
+    assert not watcher.current_modes_have_changed()
     assert capsys.readouterr().out == ""
 
 
-REFRESH_ONGOING_CHECKS_IF_NECESSARY_OUTPUT_1 = """
-directory {0} has changed
+REFRESH_CURRENT_CHECKS_IF_NECESSARY_OUTPUT_1 = """
+configuration directory has changed
 reading configuration
 done
 filtering modes and checks
 done
 """.lstrip()
 
-REFRESH_ONGOING_CHECKS_IF_NECESSARY_CHECKS_CHANGED = """
+REFRESH_CURRENT_CHECKS_IF_NECESSARY_CHECKS_CHANGED = """
 ---
 - check: just adding a check without mode
   fix: whatever
@@ -272,19 +272,19 @@ REFRESH_ONGOING_CHECKS_IF_NECESSARY_CHECKS_CHANGED = """
   when: special
 """.lstrip()
 
-REFRESH_ONGOING_CHECKS_IF_NECESSARY_OUTPUT_2 = """
-directory {0} has changed
+REFRESH_CURRENT_CHECKS_IF_NECESSARY_OUTPUT_2 = """
+configuration directory has changed
 reading configuration
 done
 filtering modes and checks
 done
 checks have changed
-filtering ongoing checks
-active: {{"check": "just adding a check without mode", "fix": "whatever", "rank": 1}}
+filtering current checks
+active: {"check": "just adding a check without mode", "fix": "whatever", "rank": 1}
 done
 """.lstrip()
 
-REFRESH_ONGOING_CHECKS_IF_NECESSARY_CHECKS_AND_MODES_CHANGED = """
+REFRESH_CURRENT_CHECKS_IF_NECESSARY_CHECKS_AND_MODES_CHANGED = """
 ---
 - check: adding a check with mode
   fix: whatever
@@ -294,87 +294,87 @@ REFRESH_ONGOING_CHECKS_IF_NECESSARY_CHECKS_AND_MODES_CHANGED = """
   if: true
 """.lstrip()
 
-REFRESH_ONGOING_CHECKS_IF_NECESSARY_OUTPUT_3 = """
-directory {0} has changed
+REFRESH_CURRENT_CHECKS_IF_NECESSARY_OUTPUT_3 = """
+configuration directory has changed
 reading configuration
 done
 filtering modes and checks
 done
 checks have changed
-ongoing modes have changed: ['basic']
-filtering ongoing checks
-active: {{"check": "just adding a check without mode", "fix": "whatever", "rank": 1}}
-active: {{"check": "adding a check with mode", "fix": "whatever", "rank": 2, "when": "basic"}}
+current modes have changed: ['basic']
+filtering current checks
+active: {"check": "just adding a check without mode", "fix": "whatever", "rank": 1}
+active: {"check": "adding a check with mode", "fix": "whatever", "rank": 2, "when": "basic"}
 done
 """.lstrip()
 
-REFRESH_ONGOING_CHECKS_IF_NECESSARY_ONLY_MODES_CHANGED = """
+REFRESH_CURRENT_CHECKS_IF_NECESSARY_ONLY_MODES_CHANGED = """
 ---
 - mode: special
   if: "[ ! -f {0}/flag ]"
 """.lstrip()
 
-REFRESH_ONGOING_CHECKS_IF_NECESSARY_OUTPUT_4 = """
-directory {0} has changed
+REFRESH_CURRENT_CHECKS_IF_NECESSARY_OUTPUT_4 = """
+configuration directory has changed
 reading configuration
 done
 filtering modes and checks
 done
-ongoing modes have changed: ['basic', 'special']
-filtering ongoing checks
-active: {{"check": "just adding a check without mode", "fix": "whatever", "rank": 1}}
-active: {{"check": "adding a check with mode", "fix": "whatever", "rank": 2, "when": "basic"}}
-active: {{"check": "adding a check for later", "fix": "whatever", "rank": 10, "when": "special"}}
+current modes have changed: ['basic', 'special']
+filtering current checks
+active: {"check": "just adding a check without mode", "fix": "whatever", "rank": 1}
+active: {"check": "adding a check with mode", "fix": "whatever", "rank": 2, "when": "basic"}
+active: {"check": "adding a check for later", "fix": "whatever", "rank": 10, "when": "special"}
 done
 """.lstrip()
 
-REFRESH_ONGOING_CHECKS_IF_NECESSARY_OUTPUT_5 = """
-ongoing modes have changed: ['basic']
-filtering ongoing checks
+REFRESH_CURRENT_CHECKS_IF_NECESSARY_OUTPUT_5 = """
+current modes have changed: ['basic']
+filtering current checks
 active: {"check": "just adding a check without mode", "fix": "whatever", "rank": 1}
 active: {"check": "adding a check with mode", "fix": "whatever", "rank": 2, "when": "basic"}
 done
 """.lstrip()
 
 
-def test_refresh_ongoing_checks_if_necessary_ok(tmp_path, capsys):
+def test_refresh_current_checks_if_necessary_ok(tmp_path, capsys):
     config_path = tmp_path.joinpath("config")
     config_path.mkdir()
 
     # init
     watcher = heal.Watcher(config_path)
-    assert watcher.refresh_ongoing_checks_if_necessary() == []
-    assert capsys.readouterr().out == REFRESH_ONGOING_CHECKS_IF_NECESSARY_OUTPUT_1.format(config_path)
+    assert watcher.refresh_current_checks_if_necessary() == []
+    assert capsys.readouterr().out == REFRESH_CURRENT_CHECKS_IF_NECESSARY_OUTPUT_1
 
-    # case 1: checks changed, not ongoing modes
+    # case 1: checks changed, not current modes
     time.sleep(0.01)
-    config_path.joinpath("checks_changed.yaml").write_text(REFRESH_ONGOING_CHECKS_IF_NECESSARY_CHECKS_CHANGED)
-    assert watcher.refresh_ongoing_checks_if_necessary() == [{"check": "just adding a check without mode", "fix": "whatever", "rank": 1}]
-    assert capsys.readouterr().out == REFRESH_ONGOING_CHECKS_IF_NECESSARY_OUTPUT_2.format(config_path)
+    config_path.joinpath("checks_changed.yaml").write_text(REFRESH_CURRENT_CHECKS_IF_NECESSARY_CHECKS_CHANGED)
+    assert watcher.refresh_current_checks_if_necessary() == [{"check": "just adding a check without mode", "fix": "whatever", "rank": 1}]
+    assert capsys.readouterr().out == REFRESH_CURRENT_CHECKS_IF_NECESSARY_OUTPUT_2
 
-    # case 2: checks and ongoing modes changed
+    # case 2: checks and current modes changed
     time.sleep(0.01)
-    config_path.joinpath("checks_and_modes_changed.yaml").write_text(REFRESH_ONGOING_CHECKS_IF_NECESSARY_CHECKS_AND_MODES_CHANGED)
-    assert watcher.refresh_ongoing_checks_if_necessary() == [{"check": "just adding a check without mode", "fix": "whatever", "rank": 1},
+    config_path.joinpath("checks_and_modes_changed.yaml").write_text(REFRESH_CURRENT_CHECKS_IF_NECESSARY_CHECKS_AND_MODES_CHANGED)
+    assert watcher.refresh_current_checks_if_necessary() == [{"check": "just adding a check without mode", "fix": "whatever", "rank": 1},
                                                              {"check": "adding a check with mode", "fix": "whatever", "rank": 2, "when": "basic"}]
-    assert capsys.readouterr().out == REFRESH_ONGOING_CHECKS_IF_NECESSARY_OUTPUT_3.format(config_path)
+    assert capsys.readouterr().out == REFRESH_CURRENT_CHECKS_IF_NECESSARY_OUTPUT_3
 
-    # case 3: new ongoing mode
+    # case 3: new current mode
     time.sleep(0.01)
-    config_path.joinpath("only_modes_changed.yaml").write_text(REFRESH_ONGOING_CHECKS_IF_NECESSARY_ONLY_MODES_CHANGED.format(tmp_path))
-    assert watcher.refresh_ongoing_checks_if_necessary() == [{"check": "just adding a check without mode", "fix": "whatever", "rank": 1},
+    config_path.joinpath("only_modes_changed.yaml").write_text(REFRESH_CURRENT_CHECKS_IF_NECESSARY_ONLY_MODES_CHANGED.format(tmp_path))
+    assert watcher.refresh_current_checks_if_necessary() == [{"check": "just adding a check without mode", "fix": "whatever", "rank": 1},
                                                              {"check": "adding a check with mode", "fix": "whatever", "rank": 2, "when": "basic"},
                                                              {"check": "adding a check for later", "fix": "whatever", "rank": 10, "when": "special"}]
-    assert capsys.readouterr().out == REFRESH_ONGOING_CHECKS_IF_NECESSARY_OUTPUT_4.format(config_path)
+    assert capsys.readouterr().out == REFRESH_CURRENT_CHECKS_IF_NECESSARY_OUTPUT_4
 
     # case 4: nothing changed
-    assert watcher.refresh_ongoing_checks_if_necessary() == [{"check": "just adding a check without mode", "fix": "whatever", "rank": 1},
+    assert watcher.refresh_current_checks_if_necessary() == [{"check": "just adding a check without mode", "fix": "whatever", "rank": 1},
                                                              {"check": "adding a check with mode", "fix": "whatever", "rank": 2, "when": "basic"},
                                                              {"check": "adding a check for later", "fix": "whatever", "rank": 10, "when": "special"}]
     assert capsys.readouterr().out == ""
 
-    # case 5: ongoing modes changed
+    # case 5: current modes changed
     tmp_path.joinpath("flag").touch()
-    assert watcher.refresh_ongoing_checks_if_necessary() == [{"check": "just adding a check without mode", "fix": "whatever", "rank": 1},
+    assert watcher.refresh_current_checks_if_necessary() == [{"check": "just adding a check without mode", "fix": "whatever", "rank": 1},
                                                              {"check": "adding a check with mode", "fix": "whatever", "rank": 2, "when": "basic"}]
-    assert capsys.readouterr().out == REFRESH_ONGOING_CHECKS_IF_NECESSARY_OUTPUT_5
+    assert capsys.readouterr().out == REFRESH_CURRENT_CHECKS_IF_NECESSARY_OUTPUT_5
