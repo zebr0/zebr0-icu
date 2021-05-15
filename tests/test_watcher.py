@@ -30,7 +30,7 @@ def test_read_config_ok(tmp_path, capsys):
     tmp_path.joinpath("file1.yml").write_text(READ_CONFIG_FILE_1)
     tmp_path.joinpath("file2.yml").write_text(READ_CONFIG_FILE_2)
 
-    assert sorted(heal.read_config(tmp_path)) == ["adipiscing", "amet", "consectetur", "dolor", "elit", "ipsum", "lorem", "sit"]
+    assert sorted(heal.watch.read_config(tmp_path)) == ["adipiscing", "amet", "consectetur", "dolor", "elit", "ipsum", "lorem", "sit"]
     assert capsys.readouterr().out == READ_CONFIG_OK_OUTPUT
 
 
@@ -45,7 +45,7 @@ def test_read_config_ko_oserror(tmp_path, monkeypatch, capsys):
     tmp_path.joinpath("file2.yml").write_text(READ_CONFIG_FILE_2)
     monkeypatch.setattr(pathlib.Path, "iterdir", lambda _: [tmp_path.joinpath("file1.yml"), tmp_path.joinpath("file2.yml")])
 
-    assert heal.read_config(tmp_path) == ["consectetur", "adipiscing", "elit"]
+    assert heal.watch.read_config(tmp_path) == ["consectetur", "adipiscing", "elit"]
     assert capsys.readouterr().out == READ_CONFIG_KO_OSERROR_OUTPUT.format(tmp_path)
 
 
@@ -60,7 +60,7 @@ def test_read_config_ko_valueerror(tmp_path, capsys):
     tmp_path.joinpath("file1.yml").write_bytes(bytes([0x99]))
     tmp_path.joinpath("file2.yml").write_text(READ_CONFIG_FILE_2)
 
-    assert heal.read_config(tmp_path) == ["consectetur", "adipiscing", "elit"]
+    assert heal.watch.read_config(tmp_path) == ["consectetur", "adipiscing", "elit"]
     assert capsys.readouterr().out == READ_CONFIG_KO_VALUEERROR_OUTPUT
 
 
@@ -75,12 +75,12 @@ def test_read_config_ko_not_a_list(tmp_path, capsys):
     tmp_path.joinpath("file1.yml").write_text("lorem ipsum dolor sit amet")
     tmp_path.joinpath("file2.yml").write_text(READ_CONFIG_FILE_2)
 
-    assert heal.read_config(tmp_path) == ["consectetur", "adipiscing", "elit"]
+    assert heal.watch.read_config(tmp_path) == ["consectetur", "adipiscing", "elit"]
     assert capsys.readouterr().out == READ_CONFIG_KO_NOT_A_LIST_OUTPUT
 
 
 def test_read_config_ok_empty(tmp_path, capsys):
-    assert heal.read_config(tmp_path) == []
+    assert heal.watch.read_config(tmp_path) == []
     assert capsys.readouterr().out == READ_CONFIG_OK_OUTPUT
 
 
@@ -91,10 +91,10 @@ done
 
 
 def test_filter_modes_and_checks_ok(capsys):
-    modes, checks = heal.filter_modes_and_checks([{"check": "sed do eiusmod tempor", "fix": "incididunt ut labore et dolore magna aliqua", "rank": "2"},
-                                                  {"check": "lorem ipsum dolor sit amet", "fix": "consectetur adipiscing elit", "rank": "1", "when": "alpha"},
-                                                  {"mode": "beta", "if": "ut enim"},
-                                                  {"mode": "alpha", "if": "ad minim veniam"}])
+    modes, checks = heal.watch.filter_modes_and_checks([{"check": "sed do eiusmod tempor", "fix": "incididunt ut labore et dolore magna aliqua", "rank": "2"},
+                                                        {"check": "lorem ipsum dolor sit amet", "fix": "consectetur adipiscing elit", "rank": "1", "when": "alpha"},
+                                                        {"mode": "beta", "if": "ut enim"},
+                                                        {"mode": "alpha", "if": "ad minim veniam"}])
 
     assert modes == [{"mode": "alpha", "if": "ad minim veniam"},
                      {"mode": "beta", "if": "ut enim"}]
@@ -122,7 +122,7 @@ done
 
 
 def test_filter_modes_and_checks_ko(capsys):
-    assert heal.filter_modes_and_checks([
+    assert heal.watch.filter_modes_and_checks([
         "check",
         [],
         {"check": "", "fix": "", "rank": {}},
@@ -140,12 +140,12 @@ def test_filter_modes_and_checks_ko(capsys):
 
 
 def test_filter_modes_and_checks_ok_empty(capsys):
-    assert heal.filter_modes_and_checks([]) == ([], [])
+    assert heal.watch.filter_modes_and_checks([]) == ([], [])
     assert capsys.readouterr().out == FILTER_MODES_AND_CHECKS_OK_OUTPUT
 
 
 def test_filter_current_modes_ok():
-    assert heal.filter_current_modes([
+    assert heal.watch.filter_current_modes([
         {"mode": "one", "if": "/bin/true"},
         {"mode": "two", "if": "/bin/false"},
         {"mode": "three", "if": "/bin/false"},
@@ -154,7 +154,7 @@ def test_filter_current_modes_ok():
 
 
 def test_filter_current_modes_ok_empty():
-    assert heal.filter_current_modes([]) == []
+    assert heal.watch.filter_current_modes([]) == []
 
 
 FILTER_CURRENT_CHECKS_OK_OUTPUT = """
@@ -171,8 +171,8 @@ def test_filter_current_checks_ok(capsys):
               {"check": "", "fix": "", "rank": 2, "when": "alpha"},
               {"check": "", "fix": "", "rank": 3, "when": "beta"}]
 
-    assert heal.filter_current_checks(current_modes, checks) == [{"check": "", "fix": "", "rank": 1},
-                                                                 {"check": "", "fix": "", "rank": 2, "when": "alpha"}]
+    assert heal.watch.filter_current_checks(current_modes, checks) == [{"check": "", "fix": "", "rank": 1},
+                                                                       {"check": "", "fix": "", "rank": 2, "when": "alpha"}]
     assert capsys.readouterr().out == FILTER_CURRENT_CHECKS_OK_OUTPUT
 
 
@@ -183,7 +183,7 @@ done
 
 
 def test_filter_current_checks_ok_empty(capsys):
-    assert heal.filter_current_checks([], []) == []
+    assert heal.watch.filter_current_checks([], []) == []
     assert capsys.readouterr().out == FILTER_CURRENT_CHECKS_OK_EMPTY_OUTPUT
 
 
@@ -206,25 +206,25 @@ def test_directory_has_changed(tmp_path, capsys):
 
 
 def test_checks_have_changed(tmp_path, monkeypatch, capsys):
-    monkeypatch.setattr(heal, "read_config", lambda _: None)
+    monkeypatch.setattr(heal.watch, "read_config", lambda _: None)
 
     watcher = heal.Watcher(tmp_path)
 
-    monkeypatch.setattr(heal, "filter_modes_and_checks", lambda _: ([], []))
+    monkeypatch.setattr(heal.watch, "filter_modes_and_checks", lambda _: ([], []))
     assert not watcher.checks_have_changed()
     assert capsys.readouterr().out == ""
 
-    monkeypatch.setattr(heal, "filter_modes_and_checks", lambda _: (["mode"], []))
+    monkeypatch.setattr(heal.watch, "filter_modes_and_checks", lambda _: (["mode"], []))
     assert not watcher.checks_have_changed()
     assert watcher.modes == ["mode"]
     assert capsys.readouterr().out == ""
 
-    monkeypatch.setattr(heal, "filter_modes_and_checks", lambda _: (["mode"], ["check1", "check2"]))
+    monkeypatch.setattr(heal.watch, "filter_modes_and_checks", lambda _: (["mode"], ["check1", "check2"]))
     assert watcher.checks_have_changed()
     assert watcher.checks == ["check1", "check2"]
     assert capsys.readouterr().out == "checks have changed\n"
 
-    monkeypatch.setattr(heal, "filter_modes_and_checks", lambda _: (["mode"], ["check1"]))
+    monkeypatch.setattr(heal.watch, "filter_modes_and_checks", lambda _: (["mode"], ["check1"]))
     assert watcher.checks_have_changed()
     assert watcher.checks == ["check1"]
     assert capsys.readouterr().out == "checks have changed\n"
@@ -236,16 +236,16 @@ def test_checks_have_changed(tmp_path, monkeypatch, capsys):
 def test_current_modes_have_changed(tmp_path, monkeypatch, capsys):
     watcher = heal.Watcher(tmp_path)
 
-    monkeypatch.setattr(heal, "filter_current_modes", lambda _: [])
+    monkeypatch.setattr(heal.watch, "filter_current_modes", lambda _: [])
     assert not watcher.current_modes_have_changed()
     assert capsys.readouterr().out == ""
 
-    monkeypatch.setattr(heal, "filter_current_modes", lambda _: ["mode1", "mode2"])
+    monkeypatch.setattr(heal.watch, "filter_current_modes", lambda _: ["mode1", "mode2"])
     assert watcher.current_modes_have_changed()
     assert watcher.current_modes == ["mode1", "mode2"]
     assert capsys.readouterr().out == "current modes have changed: ['mode1', 'mode2']\n"
 
-    monkeypatch.setattr(heal, "filter_current_modes", lambda _: ["mode1"])
+    monkeypatch.setattr(heal.watch, "filter_current_modes", lambda _: ["mode1"])
     assert watcher.current_modes_have_changed()
     assert capsys.readouterr().out == "current modes have changed: ['mode1']\n"
 
