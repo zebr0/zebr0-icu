@@ -6,7 +6,7 @@ from typing import List, Any, Tuple
 
 import yaml
 
-from heal.constants import ENCODING
+from heal.util import ENCODING
 
 
 def read_config(directory: Path) -> List[Any]:

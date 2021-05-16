@@ -1,25 +1,16 @@
 import argparse
-import datetime
-import json
+import functools
 import pathlib
 import signal
 import subprocess
 import threading
 from pathlib import Path
 
-from heal.constants import ENCODING
+from heal.util import ENCODING, write_file, do_nothing, is_file_ko
 from heal.watch import Watcher
 
 
-def write_file(file: Path, status, modes, utc=datetime.datetime.utcnow().isoformat()):
-    file.write_text(json.dumps({
-        "utc": utc,
-        "status": status,
-        "modes": modes
-    }, indent=2), encoding=ENCODING)
-
-
-def try_checks(checks, file, modes, delay=10, first_recursion=False):
+def try_checks(checks, delay=10, update_status=do_nothing):
     for i, check in enumerate(checks):
         test = check.get("check")
         cp = subprocess.run(test, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding=ENCODING)
@@ -32,8 +23,7 @@ def try_checks(checks, file, modes, delay=10, first_recursion=False):
             print(f"[{rank}] output: {line}")
 
         print(f"[{rank}] fixing: {fix}")
-        if first_recursion:
-            write_file(file, "fixing", modes)
+        update_status("fixing")
 
         sp = subprocess.Popen(fix, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding=ENCODING)
         threading.Thread(target=lambda: [print(f"[{rank}] output: {line}", end="") for line in sp.stdout]).start()
@@ -44,7 +34,7 @@ def try_checks(checks, file, modes, delay=10, first_recursion=False):
                     print(f"[{rank}] warning! fix returned code {sp.returncode}")
                 break
             except subprocess.TimeoutExpired:
-                try_checks(checks[:i], file, modes, delay)
+                try_checks(checks[:i], delay)
 
         cp = subprocess.run(test, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding=ENCODING)
         if cp.returncode != 0:
@@ -55,16 +45,7 @@ def try_checks(checks, file, modes, delay=10, first_recursion=False):
 
         print(f"[{rank}] fix successful")
 
-    if first_recursion:
-        write_file(file, "ok", modes)
-
-
-def is_file_ko(file: Path):
-    try:
-        if json.loads(file.read_text(encoding=ENCODING)).get("status") == "ko":
-            return True
-    except (OSError, ValueError):
-        pass
+    update_status("ok")
 
 
 def heal(directory: Path, file, event, delay=10):
@@ -81,11 +62,11 @@ def heal(directory: Path, file, event, delay=10):
 
     try:
         while True:
-            try_checks(watcher.refresh_current_checks_if_necessary(), file, watcher.current_modes, delay, True)
+            try_checks(watcher.refresh_current_checks_if_necessary(), delay, functools.partial(write_file, file, watcher.current_modes))
             if event.wait(delay):
                 break
     except ChildProcessError:
-        write_file(file, "ko", watcher.current_modes)
+        write_file(file, watcher.current_modes, "ko")
         print("critical failure, exiting")
 
 

@@ -24,13 +24,13 @@ reading configuration
 done
 filtering modes and checks
 done
-try_checks([], PosixPath('{0}'), [], 0.2, True)
-try_checks([], PosixPath('{0}'), [], 0.2, True)
+try_checks([], 0.2)
+try_checks([], 0.2)
 """.lstrip()
 
 
 def test_ok(monkeypatch, tmp_path, capsys):
-    monkeypatch.setattr(heal, "try_checks", lambda i, j, k, l, m: print(f"try_checks{i, j, k, l, m}"))
+    monkeypatch.setattr(heal, "try_checks", lambda i, j, _: print(f"try_checks{i, j}"))
 
     event = threading.Event()
 
@@ -49,13 +49,13 @@ reading configuration
 done
 filtering modes and checks
 done
-write_file(PosixPath('{0}'), 'ko', [])
+write_file(PosixPath('{0}'), [], 'ko')
 critical failure, exiting
 """.lstrip()
 
 
 def test_ko_after(monkeypatch, tmp_path, capsys):
-    def blibli(i, j, k, l, m):
+    def blibli(i, j, k):
         raise ChildProcessError()
 
     monkeypatch.setattr(heal, "try_checks", blibli)
