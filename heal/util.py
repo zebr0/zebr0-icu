@@ -9,7 +9,7 @@ def write(status_file: Path, current_modes, status, utc=datetime.datetime.utcnow
     status_file.write_text(json.dumps({"utc": utc.isoformat(), "status": status, "modes": current_modes}, indent=2), encoding=ENCODING)
 
 
-def do_nothing(status):
+def ignore(*_, **__):
     pass
 
 

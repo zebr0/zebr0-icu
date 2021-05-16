@@ -6,11 +6,11 @@ import subprocess
 import threading
 from pathlib import Path
 
-from heal.util import ENCODING, write, do_nothing, is_file_ko
+from heal.util import ENCODING, write, ignore, is_file_ko
 from heal.watch import Watcher
 
 
-def try_checks(checks, delay=10, update_status=do_nothing):
+def try_checks(checks, delay=10, update_status=ignore):
     for i, check in enumerate(checks):
         test = check.get("check")
         cp = subprocess.run(test, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding=ENCODING)
