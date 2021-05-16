@@ -6,7 +6,7 @@ import subprocess
 import threading
 from pathlib import Path
 
-from heal.util import ENCODING, write, ignore, is_file_ko
+from heal.util import ENCODING, write, ignore, is_ko
 from heal.watch import Watcher
 
 
@@ -49,7 +49,7 @@ def try_checks(checks, delay=10, update_status=ignore):
 
 
 def heal(directory: Path, status_file, event, delay=10):
-    if is_file_ko(status_file):
+    if is_ko(status_file):
         print("system already in failed status, exiting")
         return
 

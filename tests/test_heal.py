@@ -11,7 +11,7 @@ def test_not_a_directory(tmp_path, capsys):
 
 
 def test_ko_before(monkeypatch, tmp_path, capsys):
-    monkeypatch.setattr(heal, "is_file_ko", lambda _: True)
+    monkeypatch.setattr(heal, "is_ko", lambda _: True)
     heal.heal(tmp_path, tmp_path, None)
 
     assert capsys.readouterr().out == "system already in failed status, exiting\n"

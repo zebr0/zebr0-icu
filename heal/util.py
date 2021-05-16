@@ -13,9 +13,8 @@ def ignore(*_, **__):
     pass
 
 
-def is_file_ko(file: Path):
+def is_ko(status_file: Path):
     try:
-        if json.loads(file.read_text(encoding=ENCODING)).get("status") == "ko":
-            return True
+        return json.loads(status_file.read_text(encoding=ENCODING)).get("status") == "ko"
     except (OSError, ValueError):
-        pass
+        return False
