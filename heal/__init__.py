@@ -6,44 +6,36 @@ import subprocess
 import threading
 from pathlib import Path
 
-from heal.util import ENCODING, write, ignore, is_ko
+from heal.util import SP_KWARGS, print_output, write, ignore, is_ko
 from heal.watch import Watcher
 
 
 def try_checks(checks, delay=10, update_status=ignore):
     for i, check in enumerate(checks):
         test = check.get("check")
-        cp = subprocess.run(test, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding=ENCODING)
+        cp = subprocess.run(test, **SP_KWARGS)
         if cp.returncode == 0:
             continue
 
-        fix, rank = check.get("fix"), check.get("rank")
-        print(f"[{rank}] failed({cp.returncode}): {test}")
-        for line in cp.stdout.splitlines():
-            print(f"[{rank}] output: {line}")
+        rank = "[" + str(check.get("rank")) + "]"
+        print_output(rank, "failed", test, cp.stdout.splitlines())
 
-        print(f"[{rank}] fixing: {fix}")
         update_status("fixing")
-
-        sp = subprocess.Popen(fix, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding=ENCODING)
-        threading.Thread(target=lambda: [print(f"[{rank}] output: {line}", end="") for line in sp.stdout]).start()
-
+        fix = check.get("fix")
+        sp = subprocess.Popen(fix, **SP_KWARGS)
+        threading.Thread(target=print_output, args=(rank, "fixing", fix, sp.stdout)).start()
         while True:
             try:
-                if sp.wait(delay) != 0:
-                    print(f"[{rank}] warning! fix returned code {sp.returncode}")
+                sp.wait(delay)
                 break
             except subprocess.TimeoutExpired:
                 try_checks(checks[:i], delay)
 
-        cp = subprocess.run(test, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding=ENCODING)
+        cp = subprocess.run(test, **SP_KWARGS)
         if cp.returncode != 0:
-            print(f"[{rank}] failed({cp.returncode}): {test}")
-            for line in cp.stdout.splitlines():
-                print(f"[{rank}] output: {line}")
+            print_output(rank, "failed", test, cp.stdout.splitlines())
             raise ChildProcessError()
-
-        print(f"[{rank}] fix successful")
+        print(rank, "fix successful")
 
     update_status("ok")
 

@@ -15,7 +15,7 @@ def test_ok(monkeypatch, capsys):
 
 
 III = """
-[10] failed(1): [ -f {0} ]
+[10] failed: [ -f {0} ]
 [10] fixing: echo one && sleep 1 && echo two && touch {0}
 [10] output: one
 """.lstrip()
@@ -38,11 +38,11 @@ def test_progressive_output(tmp_path, capsys):
 
 
 EEE = """
-[20] failed(1): echo test && echo test && [ -f {0} ]
+[20] failed: echo test && echo test && [ -f {0} ]
 [20] output: test
 [20] output: test
-[20] fixing: echo touch && touch {0}
 fixing
+[20] fixing: echo touch && touch {0}
 [20] output: touch
 [20] fix successful
 ok
@@ -59,11 +59,10 @@ def test_fix(monkeypatch, tmp_path, capsys):
 
 
 DDD = """
-[5] failed(1): echo doomed && false
+[5] failed: echo doomed && false
 [5] output: doomed
 [5] fixing: false
-[5] warning! fix returned code 1
-[5] failed(1): echo doomed && false
+[5] failed: echo doomed && false
 [5] output: doomed
 """.lstrip()
 
@@ -77,7 +76,7 @@ def test_ko(capsys):
 
 
 FFF = """
-[10] failed(1): [ -f {0} ]
+[10] failed: [ -f {0} ]
 [10] fixing: sleep 1 && touch {0}
 [10] fix successful
 """.lstrip()
@@ -96,9 +95,9 @@ def test_goodchecks_ok(tmp_path, capsys):
 
 
 PPP = """
-[9] failed(1): [ -f {1} ]
+[9] failed: [ -f {1} ]
 [9] fixing: sleep 1 && touch {1}
-[7] failed(1): [ ! -f {0} ] && touch {0}
+[7] failed: [ ! -f {0} ] && touch {0}
 [7] fixing: rm {0}
 [7] fix successful
 [9] fix successful
@@ -117,11 +116,11 @@ def test_goodchecks_ko(tmp_path, capsys):
 
 
 LLL = """
-[11] failed(1): [ -f {1} ]
+[11] failed: [ -f {1} ]
 [11] fixing: sleep 1 && touch {1}
-[6] failed(1): [ ! -f {0} ] && touch {0}
+[6] failed: [ ! -f {0} ] && touch {0}
 [6] fixing: true
-[6] failed(1): [ ! -f {0} ] && touch {0}
+[6] failed: [ ! -f {0} ] && touch {0}
 """.lstrip()
 
 
