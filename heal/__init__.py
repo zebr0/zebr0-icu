@@ -6,7 +6,7 @@ import subprocess
 import threading
 from pathlib import Path
 
-from heal.util import ENCODING, write_file, do_nothing, is_file_ko
+from heal.util import ENCODING, write, do_nothing, is_file_ko
 from heal.watch import Watcher
 
 
@@ -48,8 +48,8 @@ def try_checks(checks, delay=10, update_status=do_nothing):
     update_status("ok")
 
 
-def heal(directory: Path, file, event, delay=10):
-    if is_file_ko(file):
+def heal(directory: Path, status_file, event, delay=10):
+    if is_file_ko(status_file):
         print("system already in failed status, exiting")
         return
 
@@ -62,11 +62,11 @@ def heal(directory: Path, file, event, delay=10):
 
     try:
         while True:
-            try_checks(watcher.refresh_current_checks_if_necessary(), delay, functools.partial(write_file, file, watcher.current_modes))
+            try_checks(watcher.refresh_current_checks_if_necessary(), delay, functools.partial(write, status_file, watcher.current_modes))
             if event.wait(delay):
                 break
     except ChildProcessError:
-        write_file(file, watcher.current_modes, "ko")
+        write(status_file, watcher.current_modes, "ko")
         print("critical failure, exiting")
 
 

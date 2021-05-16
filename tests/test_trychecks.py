@@ -1,5 +1,3 @@
-import datetime
-import json
 import threading
 
 import pytest
@@ -140,4 +138,3 @@ def test_goodchecks_exception(tmp_path, capsys):
     assert capsys.readouterr().out == LLL.format(flag1, flag2)
     time.sleep(0.7)
     assert capsys.readouterr().out == ""
-

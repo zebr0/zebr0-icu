@@ -54,9 +54,9 @@ def test_is_file_ko_status_ko(tmp_path):
     assert heal.util.is_file_ko(text_path)
 
 
-def test_write_file(tmp_path):
-    file = tmp_path.joinpath("test")
-    utc = datetime.datetime.utcnow().isoformat()
-    heal.util.write_file(file, ["one", "two"], "ok", utc)
+def test_write(tmp_path):
+    status_file = tmp_path.joinpath("test")
+    utc = datetime.datetime.utcnow()
+    heal.util.write(status_file, ["one", "two"], "ok", utc)
 
-    assert json.loads(file.read_text()) == {"utc": utc, "status": "ok", "modes": ["one", "two"]}
+    assert json.loads(status_file.read_text()) == {"utc": utc.isoformat(), "status": "ok", "modes": ["one", "two"]}

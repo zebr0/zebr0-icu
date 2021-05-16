@@ -49,7 +49,7 @@ reading configuration
 done
 filtering modes and checks
 done
-write_file(PosixPath('{0}'), [], 'ko')
+write(PosixPath('{0}'), [], 'ko')
 critical failure, exiting
 """.lstrip()
 
@@ -59,7 +59,7 @@ def test_ko_after(monkeypatch, tmp_path, capsys):
         raise ChildProcessError()
 
     monkeypatch.setattr(heal, "try_checks", blibli)
-    monkeypatch.setattr(heal, "write_file", lambda i, j, k: print(f"write_file{i, j, k}"))
+    monkeypatch.setattr(heal, "write", lambda i, j, k: print(f"write{i, j, k}"))
 
     event = threading.Event()
 
