@@ -112,4 +112,3 @@ class Watcher:
     def refresh_current_checks_if_necessary(self):
         if (self.directory_has_changed() and self.checks_have_changed()) | self.current_modes_have_changed():
             self.current_checks = filter_current_checks(self.current_modes, self.checks)
-        return self.current_checks

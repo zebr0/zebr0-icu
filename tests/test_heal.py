@@ -7,18 +7,18 @@ import heal
 
 def test_not_a_directory(tmp_path, capsys):
     heal.heal(tmp_path.joinpath("fake"), tmp_path, None)
-    assert capsys.readouterr().out == "directory must exist\n"
+    assert capsys.readouterr().out == f"exiting: {tmp_path.joinpath('fake')} must exist and be a directory\n"
 
 
 def test_ko_before(monkeypatch, tmp_path, capsys):
     monkeypatch.setattr(heal, "is_ko", lambda _: True)
     heal.heal(tmp_path, tmp_path, None)
 
-    assert capsys.readouterr().out == "system already in failed status, exiting\n"
+    assert capsys.readouterr().out == f"exiting: ko status found in {tmp_path}\n"
 
 
 EEE = """
-watching configuration directory: {0}
+watching: {0}
 configuration directory has changed
 reading configuration
 done
@@ -43,14 +43,13 @@ def test_ok(monkeypatch, tmp_path, capsys):
 
 
 FFF = """
-watching configuration directory: {0}
+watching: {0}
 configuration directory has changed
 reading configuration
 done
 filtering modes and checks
 done
-write(PosixPath('{0}'), [], 'ko')
-critical failure, exiting
+exiting: fatal error
 """.lstrip()
 
 

@@ -343,38 +343,44 @@ def test_refresh_current_checks_if_necessary_ok(tmp_path, capsys):
 
     # init
     watcher = heal.Watcher(config_path)
-    assert watcher.refresh_current_checks_if_necessary() == []
+    watcher.refresh_current_checks_if_necessary()
+    assert watcher.current_checks == []
     assert capsys.readouterr().out == REFRESH_CURRENT_CHECKS_IF_NECESSARY_OUTPUT_1
 
     # case 1: checks changed, not current modes
     time.sleep(0.01)
     config_path.joinpath("checks_changed.yaml").write_text(REFRESH_CURRENT_CHECKS_IF_NECESSARY_CHECKS_CHANGED)
-    assert watcher.refresh_current_checks_if_necessary() == [{"check": "just adding a check without mode", "fix": "whatever", "rank": 1}]
+    watcher.refresh_current_checks_if_necessary()
+    assert watcher.current_checks == [{"check": "just adding a check without mode", "fix": "whatever", "rank": 1}]
     assert capsys.readouterr().out == REFRESH_CURRENT_CHECKS_IF_NECESSARY_OUTPUT_2
 
     # case 2: checks and current modes changed
     time.sleep(0.01)
     config_path.joinpath("checks_and_modes_changed.yaml").write_text(REFRESH_CURRENT_CHECKS_IF_NECESSARY_CHECKS_AND_MODES_CHANGED)
-    assert watcher.refresh_current_checks_if_necessary() == [{"check": "just adding a check without mode", "fix": "whatever", "rank": 1},
-                                                             {"check": "adding a check with mode", "fix": "whatever", "rank": 2, "when": "basic"}]
+    watcher.refresh_current_checks_if_necessary()
+    assert watcher.current_checks == [{"check": "just adding a check without mode", "fix": "whatever", "rank": 1},
+                                      {"check": "adding a check with mode", "fix": "whatever", "rank": 2, "when": "basic"}]
     assert capsys.readouterr().out == REFRESH_CURRENT_CHECKS_IF_NECESSARY_OUTPUT_3
 
     # case 3: new current mode
     time.sleep(0.01)
     config_path.joinpath("only_modes_changed.yaml").write_text(REFRESH_CURRENT_CHECKS_IF_NECESSARY_ONLY_MODES_CHANGED.format(tmp_path))
-    assert watcher.refresh_current_checks_if_necessary() == [{"check": "just adding a check without mode", "fix": "whatever", "rank": 1},
-                                                             {"check": "adding a check with mode", "fix": "whatever", "rank": 2, "when": "basic"},
-                                                             {"check": "adding a check for later", "fix": "whatever", "rank": 10, "when": "special"}]
+    watcher.refresh_current_checks_if_necessary()
+    assert watcher.current_checks == [{"check": "just adding a check without mode", "fix": "whatever", "rank": 1},
+                                      {"check": "adding a check with mode", "fix": "whatever", "rank": 2, "when": "basic"},
+                                      {"check": "adding a check for later", "fix": "whatever", "rank": 10, "when": "special"}]
     assert capsys.readouterr().out == REFRESH_CURRENT_CHECKS_IF_NECESSARY_OUTPUT_4
 
     # case 4: nothing changed
-    assert watcher.refresh_current_checks_if_necessary() == [{"check": "just adding a check without mode", "fix": "whatever", "rank": 1},
-                                                             {"check": "adding a check with mode", "fix": "whatever", "rank": 2, "when": "basic"},
-                                                             {"check": "adding a check for later", "fix": "whatever", "rank": 10, "when": "special"}]
+    watcher.refresh_current_checks_if_necessary()
+    assert watcher.current_checks == [{"check": "just adding a check without mode", "fix": "whatever", "rank": 1},
+                                      {"check": "adding a check with mode", "fix": "whatever", "rank": 2, "when": "basic"},
+                                      {"check": "adding a check for later", "fix": "whatever", "rank": 10, "when": "special"}]
     assert capsys.readouterr().out == ""
 
     # case 5: current modes changed
     tmp_path.joinpath("flag").touch()
-    assert watcher.refresh_current_checks_if_necessary() == [{"check": "just adding a check without mode", "fix": "whatever", "rank": 1},
-                                                             {"check": "adding a check with mode", "fix": "whatever", "rank": 2, "when": "basic"}]
+    watcher.refresh_current_checks_if_necessary()
+    assert watcher.current_checks == [{"check": "just adding a check without mode", "fix": "whatever", "rank": 1},
+                                      {"check": "adding a check with mode", "fix": "whatever", "rank": 2, "when": "basic"}]
     assert capsys.readouterr().out == REFRESH_CURRENT_CHECKS_IF_NECESSARY_OUTPUT_5

@@ -33,33 +33,33 @@ def try_checks(checks, delay=10, update_status=ignore):
 
         cp = subprocess.run(test, **SP_KWARGS)
         if cp.returncode != 0:
-            print_output(rank, "failed", test, cp.stdout.splitlines())
+            print_output(rank, "failed again", test, cp.stdout.splitlines())
+            update_status("ko")
             raise ChildProcessError()
         print(rank, "fix successful")
 
     update_status("ok")
 
 
-def heal(directory: Path, status_file, event, delay=10):
+def heal(configuration_directory: Path, status_file, event, delay=10):
     if is_ko(status_file):
-        print("system already in failed status, exiting")
+        print("exiting: ko status found in", status_file)
         return
 
-    if not directory.is_dir():
-        print("directory must exist")
+    if not configuration_directory.is_dir():
+        print("exiting:", configuration_directory, "must exist and be a directory")
         return
 
-    print("watching configuration directory:", directory)
-    watcher = Watcher(directory)
+    print("watching:", configuration_directory)
+    watcher = Watcher(configuration_directory)
 
     try:
-        while True:
-            try_checks(watcher.refresh_current_checks_if_necessary(), delay, functools.partial(write, status_file, watcher.current_modes))
-            if event.wait(delay):
-                break
+        while not event.is_set():
+            watcher.refresh_current_checks_if_necessary()
+            try_checks(watcher.current_checks, delay, functools.partial(write, status_file, watcher.current_modes))
+            event.wait(delay)
     except ChildProcessError:
-        write(status_file, watcher.current_modes, "ko")
-        print("critical failure, exiting")
+        print("exiting: fatal error")
 
 
 def main(args=None):

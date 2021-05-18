@@ -61,9 +61,11 @@ def test_fix(monkeypatch, tmp_path, capsys):
 DDD = """
 [5] failed: echo doomed && false
 [5] output: doomed
+fixing
 [5] fixing: false
-[5] failed: echo doomed && false
+[5] failed again: echo doomed && false
 [5] output: doomed
+ko
 """.lstrip()
 
 
@@ -71,7 +73,7 @@ def test_ko(capsys):
     with pytest.raises(ChildProcessError):
         heal.try_checks([
             {"check": "echo doomed && false", "fix": "false", "rank": 5}
-        ])
+        ], update_status=lambda status: print(status))
     assert capsys.readouterr().out == DDD
 
 
@@ -120,7 +122,7 @@ LLL = """
 [11] fixing: sleep 1 && touch {1}
 [6] failed: [ ! -f {0} ] && touch {0}
 [6] fixing: true
-[6] failed: [ ! -f {0} ] && touch {0}
+[6] failed again: [ ! -f {0} ] && touch {0}
 """.lstrip()
 
 
