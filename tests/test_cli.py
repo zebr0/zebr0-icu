@@ -16,4 +16,4 @@ def test_ok(tmp_path):
         os.kill(os.getpid(), signal.SIGINT)
 
     threading.Thread(target=blibli).start()
-    heal.main(["-d", str(bloblo), "-f", str(tmp_path.joinpath("bliablia")), "-t", "0.2"])
+    heal.main(["-c", str(bloblo), "-s", str(tmp_path.joinpath("bliablia")), "-d", "0.2"])

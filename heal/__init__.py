@@ -1,6 +1,5 @@
 import argparse
 import functools
-import pathlib
 import signal
 import subprocess
 import threading
@@ -64,15 +63,13 @@ def heal(configuration_directory: Path, status_file, event, delay=10):
 
 def main(args=None):
     argparser = argparse.ArgumentParser(description="")
-    argparser.add_argument("-d", "--directory", type=pathlib.Path, default=pathlib.Path("/etc/heald"), help="")
-    argparser.add_argument("-f", "--file", type=pathlib.Path, default=pathlib.Path("/var/heald/status.json"), help="")
-    argparser.add_argument("-t", "--time", type=float, default=10, help="")
+    argparser.add_argument("-c", "--configuration-directory", type=Path, default=Path("/etc/heal"), help="")
+    argparser.add_argument("-s", "--status-file", type=Path, default=Path("/var/heal/status.json"), help="")
+    argparser.add_argument("-d", "--delay", type=float, default=10, help="")
     args = argparser.parse_args(args)
 
     event = threading.Event()
-
-    # handles signals properly
     for sig in [signal.SIGINT, signal.SIGTERM]:
         signal.signal(sig, lambda signum, frame: event.set())
 
-    heal(args.directory, args.file, event, args.time)
+    heal(args.configuration_directory, args.status_file, event, args.delay)
