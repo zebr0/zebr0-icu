@@ -33,7 +33,6 @@ def try_checks(checks, delay=10, update_status=ignore):
         cp = subprocess.run(test, **SP_KWARGS)
         if cp.returncode != 0:
             print_output(rank, "failed again", test, cp.stdout.splitlines())
-            update_status("ko")
             raise ChildProcessError()
         print(rank, "fix successful")
 
@@ -58,6 +57,7 @@ def heal(configuration_directory: Path, status_file, event, delay=10):
             try_checks(watcher.current_checks, delay, functools.partial(write, status_file, watcher.current_modes))
             event.wait(delay)
     except ChildProcessError:
+        write(status_file, watcher.current_modes, "ko")
         print("exiting: fatal error")
 
 

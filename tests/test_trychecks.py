@@ -56,7 +56,6 @@ status: fixing
 [5] fixing: false
 [5] failed again: echo doomed && false
 [5] output: doomed
-status: ko
 """.lstrip()
 
 

@@ -49,6 +49,7 @@ reading configuration
 done
 filtering modes and checks
 done
+write(PosixPath('{0}'), [], 'ko')
 exiting: fatal error
 """.lstrip()
 
