@@ -1,3 +1,4 @@
+import json
 import threading
 
 import time
@@ -5,65 +6,131 @@ import time
 import heal
 
 
-def test_not_a_directory(tmp_path, capsys):
-    heal.heal(tmp_path.joinpath("fake"), tmp_path, None)
-    assert capsys.readouterr().out == f"exiting: {tmp_path.joinpath('fake')} must exist and be a directory\n"
+def test_configuration_directory_not_exists(tmp_path, capsys):
+    configuration_directory = tmp_path.joinpath("not-exists")
+    status_file = tmp_path.joinpath("status-file")
+
+    heal.heal(configuration_directory, status_file, threading.Event())
+
+    assert capsys.readouterr().out == f"exiting: {configuration_directory} must exist and be a directory\n"
+    assert not status_file.exists()
 
 
-def test_ko_before(monkeypatch, tmp_path, capsys):
-    monkeypatch.setattr(heal, "is_ko", lambda _: True)
-    heal.heal(tmp_path, tmp_path, None)
+def test_configuration_directory_not_a_directory(tmp_path, capsys):
+    configuration_directory = tmp_path.joinpath("file")
+    configuration_directory.touch()
+    status_file = tmp_path.joinpath("status-file")
 
-    assert capsys.readouterr().out == f"exiting: ko status found in {tmp_path}\n"
+    heal.heal(configuration_directory, status_file, threading.Event())
+
+    assert capsys.readouterr().out == f"exiting: {configuration_directory} must exist and be a directory\n"
+    assert not status_file.exists()
 
 
-EEE = """
-watching: {0}
-configuration directory has changed
-reading configuration
-done
-filtering modes and checks
-done
-try_checks([], 0.2)
-try_checks([], 0.2)
+PROGRESSIVE_AND_KO_INPUT = """
+---
+- check: false
+  fix: true
+  rank: 1
 """.lstrip()
 
-
-def test_ok(monkeypatch, tmp_path, capsys):
-    monkeypatch.setattr(heal, "try_checks", lambda i, j, _: print(f"try_checks{i, j}"))
-
-    event = threading.Event()
-
-    threading.Thread(target=heal.heal, args=(tmp_path, tmp_path, event, 0.2)).start()
-    time.sleep(0.3)
-    event.set()
-    time.sleep(0.01)
-
-    assert capsys.readouterr().out == EEE.format(tmp_path)
-
-
-FFF = """
+PROGRESSIVE_AND_KO_OUTPUT_1 = """
 watching: {0}
 configuration directory has changed
 reading configuration
 done
 filtering modes and checks
 done
-write(PosixPath('{0}'), [], 'ko')
+""".lstrip()
+
+PROGRESSIVE_AND_KO_OUTPUT_2 = """
+configuration directory has changed
+reading configuration
+done
+filtering modes and checks
+done
+checks have changed
+filtering current checks
+active: {"check": "false", "fix": "true", "rank": 1}
+done
+[1] failed: false
+[1] fixing: true
+[1] failed again: false
 exiting: fatal error
 """.lstrip()
 
 
-def test_ko_after(monkeypatch, tmp_path, capsys):
-    def blibli(i, j, k):
-        raise ChildProcessError()
+def test_progressive_and_ko(tmp_path, capsys):
+    # empty configuration
+    configuration_directory = tmp_path.joinpath("config")
+    configuration_directory.mkdir()
+    status_file = tmp_path.joinpath("status-file")
 
-    monkeypatch.setattr(heal, "try_checks", blibli)
-    monkeypatch.setattr(heal, "write", lambda i, j, k: print(f"write{i, j, k}"))
+    thread = threading.Thread(target=heal.heal, args=(configuration_directory, status_file, threading.Event(), 0.1))
+    thread.start()
 
+    time.sleep(0.15)  # 2 cycles
+    assert json.loads(status_file.read_text()).get("status") == "ok"
+    assert capsys.readouterr().out == PROGRESSIVE_AND_KO_OUTPUT_1.format(configuration_directory)
+
+    # adding failing configuration
+    configuration_directory.joinpath("failing-configuration").write_text(PROGRESSIVE_AND_KO_INPUT)
+
+    thread.join()
+    assert json.loads(status_file.read_text()).get("status") == "ko"
+    assert capsys.readouterr().out == PROGRESSIVE_AND_KO_OUTPUT_2
+
+    # previous run failed, so if we start it again, it should immediately fail
+    heal.heal(configuration_directory, status_file, threading.Event())
+    assert capsys.readouterr().out == f"exiting: ko status found in {status_file}\n"
+
+
+OK_INPUT = """
+---
+- check: "[ ! -f {0} ]"
+  fix: rm {0}
+  rank: 1
+""".lstrip()
+
+OK_OUTPUT = """
+watching: {0}
+configuration directory has changed
+reading configuration
+done
+filtering modes and checks
+done
+checks have changed
+filtering current checks
+active: {{"check": "[ ! -f {1} ]", "fix": "rm {1}", "rank": 1}}
+done
+[1] failed: [ ! -f {1} ]
+[1] fixing: rm {1}
+[1] fix successful
+[1] failed: [ ! -f {1} ]
+[1] fixing: rm {1}
+[1] fix successful
+""".lstrip()
+
+
+def test_ok(tmp_path, capsys):
+    # regular configuration
+    flag = tmp_path.joinpath("flag")
+    configuration_directory = tmp_path.joinpath("config")
+    configuration_directory.mkdir()
+    configuration_directory.joinpath("config-file").write_text(OK_INPUT.format(flag))
+    status_file = tmp_path.joinpath("status-file")
     event = threading.Event()
 
-    threading.Thread(target=heal.heal, args=(tmp_path, tmp_path, event, 0.2)).start()
-    time.sleep(0.01)
+    thread = threading.Thread(target=heal.heal, args=(configuration_directory, status_file, event, 0.01))
+    thread.start()
 
-    assert capsys.readouterr().out == FFF.format(tmp_path)
+    # lots of cycles with a few problems, then normal interruption
+    time.sleep(0.2)
+    flag.touch()
+    time.sleep(0.1)
+    flag.touch()
+    time.sleep(0.2)
+    event.set()
+    thread.join()
+
+    assert capsys.readouterr().out == OK_OUTPUT.format(configuration_directory, flag)
