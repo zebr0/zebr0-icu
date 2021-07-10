@@ -13,7 +13,10 @@ def print_output(rank, header, command, lines):
         print(rank, "output:", line.rstrip())
 
 
-def write(status_file: Path, current_modes, status, utc=datetime.datetime.utcnow()):
+def write(status_file: Path, current_modes, status, utc=None):
+    if utc is None:  # fix: can't put directly datetime.datetime.utcnow() as a default value (see https://stackoverflow.com/questions/1132941)
+        utc = datetime.datetime.utcnow()
+
     status_file.write_text(json.dumps({"utc": utc.isoformat(), "status": status, "modes": current_modes}, indent=2), encoding=ENCODING)
 
 

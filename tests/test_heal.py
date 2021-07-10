@@ -1,3 +1,4 @@
+import datetime
 import json
 import threading
 
@@ -124,12 +125,26 @@ def test_ok(tmp_path, capsys):
     thread = threading.Thread(target=heal.heal, args=(configuration_directory, status_file, event, 0.01))
     thread.start()
 
-    # lots of cycles with a few problems, then normal interruption
+    # lots of cycles
     time.sleep(0.2)
+    status_1 = json.loads(status_file.read_text())
+    assert status_1.get("status") == "ok"
+
+    # first problem
     flag.touch()
     time.sleep(0.1)
+    status_2 = json.loads(status_file.read_text())
+    assert status_2.get("status") == "ok"
+    assert datetime.datetime.fromisoformat(status_2.get("utc")) > datetime.datetime.fromisoformat(status_1.get("utc"))
+
+    # second problem
     flag.touch()
     time.sleep(0.2)
+    status_3 = json.loads(status_file.read_text())
+    assert status_3.get("status") == "ok"
+    assert datetime.datetime.fromisoformat(status_3.get("utc")) > datetime.datetime.fromisoformat(status_2.get("utc"))
+
+    # normal interruption
     event.set()
     thread.join()
 
