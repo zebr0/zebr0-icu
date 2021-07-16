@@ -16,13 +16,13 @@ def try_checks(checks, delay=10, update_status=ignore):
         if cp.returncode == 0:
             continue
 
-        rank = "[" + str(check.get("rank")) + "]"
-        print_output(rank, "failed", test, cp.stdout.splitlines())
+        check_id = "[" + str(check.get("rank")) + "]"  # may not be unique since two checks can have the same rank, still it's simpler by far
+        print_output(test, "failed", cp.stdout.splitlines(), check_id)
 
         update_status("fixing")
         fix = check.get("fix")
         sp = subprocess.Popen(fix, **SP_KWARGS)
-        threading.Thread(target=print_output, args=(rank, "fixing", fix, sp.stdout)).start()
+        threading.Thread(target=print_output, args=(fix, "fixing", sp.stdout, check_id)).start()
         while True:
             try:
                 sp.wait(delay)
@@ -32,9 +32,9 @@ def try_checks(checks, delay=10, update_status=ignore):
 
         cp = subprocess.run(test, **SP_KWARGS)
         if cp.returncode != 0:
-            print_output(rank, "failed again", test, cp.stdout.splitlines())
+            print_output(test, "failed again", cp.stdout.splitlines(), check_id)
             raise ChildProcessError()
-        print(rank, "fix successful")
+        print(check_id, "fix successful")
 
     update_status("ok")
 

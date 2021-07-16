@@ -2,15 +2,25 @@ import datetime
 import json
 import subprocess
 from pathlib import Path
+from typing import List
 
 ENCODING = "utf-8"
-SP_KWARGS = {"shell": True, "stdout": subprocess.PIPE, "stderr": subprocess.STDOUT, "encoding": ENCODING}
+SP_KWARGS = {"shell": True, "stdout": subprocess.PIPE, "stderr": subprocess.STDOUT, "encoding": ENCODING}  # common parameters to subprocess commands
 
 
-def print_output(rank, header, command, lines):
-    print(rank, header + ":", command)
-    for line in lines:
-        print(rank, "output:", line.rstrip())
+def print_output(command: str, result: str, output: List[str], prefix: str) -> None:
+    """
+    Provides a standard way to print the output of a command's execution.
+
+    :param command: obviously
+    :param result: describes the outcome of the command's execution
+    :param output: execution's output lines
+    :param prefix: prepended to all printed lines
+    """
+
+    print(prefix, result + ":", command)
+    for line in output:
+        print(prefix, "output:", line.rstrip())
 
 
 def write(status_file: Path, current_modes, status, utc=None):

@@ -3,14 +3,14 @@ import datetime
 import heal.util
 
 PRINT_OUTPUT_OK_OUTPUT = """
-[rank] header: command
-[rank] output: line 1
-[rank] output: line 2
+[x] result: command
+[x] output: line 1
+[x] output: line 2
 """.lstrip()
 
 
 def test_print_output_ok(capsys):
-    heal.util.print_output("[rank]", "header", "command", ["line 1", "line 2"])
+    heal.util.print_output("command", "result", ["line 1", "line 2"], "[x]")
     assert capsys.readouterr().out == PRINT_OUTPUT_OK_OUTPUT
 
 
