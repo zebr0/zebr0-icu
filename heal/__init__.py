@@ -56,6 +56,7 @@ def heal(configuration_directory: Path, status_file, event, delay=10):
             watcher.refresh_current_checks_if_necessary()
             try_checks(watcher.current_checks, delay, functools.partial(write, status_file, watcher.current_modes))
             event.wait(delay)
+        print("exiting: loop-ending signal")
     except ChildProcessError:
         write(status_file, watcher.current_modes, "ko")
         print("exiting: fatal error")

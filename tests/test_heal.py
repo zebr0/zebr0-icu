@@ -110,6 +110,7 @@ done
 [1] failed: [ ! -f {1} ]
 [1] fixing: rm {1}
 [1] fix successful
+exiting: loop-ending signal
 """.lstrip()
 
 

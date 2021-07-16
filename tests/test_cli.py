@@ -14,6 +14,7 @@ reading configuration
 done
 filtering modes and checks
 done
+exiting: loop-ending signal
 """.lstrip()
 
 
