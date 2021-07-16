@@ -39,21 +39,16 @@ PROGRESSIVE_AND_KO_OUTPUT_1 = """
 watching: {0}
 configuration directory has changed
 reading configuration
-done
 filtering modes and checks
-done
 """.lstrip()
 
 PROGRESSIVE_AND_KO_OUTPUT_2 = """
 configuration directory has changed
 reading configuration
-done
 filtering modes and checks
-done
 checks have changed
 filtering current checks
 active: {"check": "false", "fix": "true", "rank": 1}
-done
 [1] failed: false
 [1] fixing: true
 [1] failed again: false
@@ -97,13 +92,10 @@ OK_OUTPUT = """
 watching: {0}
 configuration directory has changed
 reading configuration
-done
 filtering modes and checks
-done
 checks have changed
 filtering current checks
 active: {{"check": "[ ! -f {1} ]", "fix": "rm {1}", "rank": 1}}
-done
 [1] failed: [ ! -f {1} ]
 [1] fixing: rm {1}
 [1] fix successful

@@ -11,9 +11,7 @@ OK_OUTPUT = """
 watching: {0}
 configuration directory has changed
 reading configuration
-done
 filtering modes and checks
-done
 exiting: loop-ending signal
 """.lstrip()
 

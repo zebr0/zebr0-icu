@@ -22,7 +22,6 @@ READ_CONFIG_FILE_2 = """
 
 READ_CONFIG_OK_OUTPUT = """
 reading configuration
-done
 """.lstrip()
 
 
@@ -37,7 +36,6 @@ def test_read_config_ok(tmp_path, capsys):
 READ_CONFIG_KO_OSERROR_OUTPUT = """
 reading configuration
 'file1.yml' ignored: [Errno 2] No such file or directory: '{0}/file1.yml'
-done
 """.lstrip()
 
 
@@ -52,7 +50,6 @@ def test_read_config_ko_oserror(tmp_path, monkeypatch, capsys):
 READ_CONFIG_KO_VALUEERROR_OUTPUT = """
 reading configuration
 'file1.yml' ignored: 'utf-8' codec can't decode byte 0x99 in position 0: invalid start byte
-done
 """.lstrip()
 
 
@@ -67,7 +64,6 @@ def test_read_config_ko_valueerror(tmp_path, capsys):
 READ_CONFIG_KO_NOT_A_LIST_OUTPUT = """
 reading configuration
 'file1.yml' ignored: not a proper yaml or json list
-done
 """.lstrip()
 
 
@@ -94,7 +90,6 @@ def test_read_config_ok_json(tmp_path, capsys):
 
 FILTER_MODES_AND_CHECKS_OK_OUTPUT = """
 filtering modes and checks
-done
 """.lstrip()
 
 
@@ -125,7 +120,6 @@ ignored, keys must match {"mode", "if"} or {"check", "fix", "rank"} or {"check",
 ignored, keys must match {"mode", "if"} or {"check", "fix", "rank"} or {"check", "fix", "rank", "when"}: {}
 ignored, keys must match {"mode", "if"} or {"check", "fix", "rank"} or {"check", "fix", "rank", "when"}: {"how": ""}
 ignored, rank must be an integer: {"check": "", "fix": "", "rank": "max"}
-done
 """.lstrip()
 
 
@@ -168,7 +162,6 @@ FILTER_CURRENT_CHECKS_OK_OUTPUT = """
 filtering current checks
 active: {"check": "", "fix": "", "rank": 1}
 active: {"check": "", "fix": "", "rank": 2, "when": "alpha"}
-done
 """.lstrip()
 
 
@@ -185,7 +178,6 @@ def test_filter_current_checks_ok(capsys):
 
 FILTER_CURRENT_CHECKS_OK_EMPTY_OUTPUT = """
 filtering current checks
-done
 """.lstrip()
 
 
@@ -271,9 +263,7 @@ def test_current_modes_have_changed(monkeypatch, capsys):
 REFRESH_CURRENT_CHECKS_IF_NECESSARY_OUTPUT_1 = """
 configuration directory has changed
 reading configuration
-done
 filtering modes and checks
-done
 """.lstrip()
 
 REFRESH_CURRENT_CHECKS_IF_NECESSARY_CHECKS_CHANGED = """
@@ -290,13 +280,10 @@ REFRESH_CURRENT_CHECKS_IF_NECESSARY_CHECKS_CHANGED = """
 REFRESH_CURRENT_CHECKS_IF_NECESSARY_OUTPUT_2 = """
 configuration directory has changed
 reading configuration
-done
 filtering modes and checks
-done
 checks have changed
 filtering current checks
 active: {"check": "just adding a check without mode", "fix": "whatever", "rank": 1}
-done
 """.lstrip()
 
 REFRESH_CURRENT_CHECKS_IF_NECESSARY_CHECKS_AND_MODES_CHANGED = """
@@ -312,15 +299,12 @@ REFRESH_CURRENT_CHECKS_IF_NECESSARY_CHECKS_AND_MODES_CHANGED = """
 REFRESH_CURRENT_CHECKS_IF_NECESSARY_OUTPUT_3 = """
 configuration directory has changed
 reading configuration
-done
 filtering modes and checks
-done
 checks have changed
 current modes have changed: ['basic']
 filtering current checks
 active: {"check": "just adding a check without mode", "fix": "whatever", "rank": 1}
 active: {"check": "adding a check with mode", "fix": "whatever", "rank": 2, "when": "basic"}
-done
 """.lstrip()
 
 REFRESH_CURRENT_CHECKS_IF_NECESSARY_ONLY_MODES_CHANGED = """
@@ -332,15 +316,12 @@ REFRESH_CURRENT_CHECKS_IF_NECESSARY_ONLY_MODES_CHANGED = """
 REFRESH_CURRENT_CHECKS_IF_NECESSARY_OUTPUT_4 = """
 configuration directory has changed
 reading configuration
-done
 filtering modes and checks
-done
 current modes have changed: ['basic', 'special']
 filtering current checks
 active: {"check": "just adding a check without mode", "fix": "whatever", "rank": 1}
 active: {"check": "adding a check with mode", "fix": "whatever", "rank": 2, "when": "basic"}
 active: {"check": "adding a check for later", "fix": "whatever", "rank": 10, "when": "special"}
-done
 """.lstrip()
 
 REFRESH_CURRENT_CHECKS_IF_NECESSARY_OUTPUT_5 = """
@@ -348,7 +329,6 @@ current modes have changed: ['basic']
 filtering current checks
 active: {"check": "just adding a check without mode", "fix": "whatever", "rank": 1}
 active: {"check": "adding a check with mode", "fix": "whatever", "rank": 2, "when": "basic"}
-done
 """.lstrip()
 
 

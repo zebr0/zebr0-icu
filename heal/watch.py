@@ -26,7 +26,6 @@ def read_config(directory: Path) -> List[Any]:
         else:
             config.extend(data)
 
-    print("done")
     return config
 
 
@@ -55,7 +54,6 @@ def filter_modes_and_checks(config: List[Any]) -> Tuple[List[dict], List[dict]]:
         else:
             print('ignored, keys must match {"mode", "if"} or {"check", "fix", "rank"} or {"check", "fix", "rank", "when"}:', json.dumps(item))
 
-    print("done")
     return sorted(modes, key=itemgetter("mode")), sorted(checks, key=itemgetter("rank"))
 
 
@@ -72,7 +70,6 @@ def filter_current_checks(current_modes, checks):
             print("active:", json.dumps(check))
             current_checks.append(check)
 
-    print("done")
     return current_checks
 
 
