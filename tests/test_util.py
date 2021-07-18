@@ -1,5 +1,3 @@
-import datetime
-
 import heal.util
 
 PRINT_OUTPUT_OK_OUTPUT = """
@@ -16,7 +14,7 @@ def test_print_output_ok(capsys):
 
 WRITE_OK_TEXT = """
 {
-  "utc": "1970-01-01T00:00:00",
+  "timestamp": "1970-01-01T00:00:00+00:00",
   "status": "ok",
   "modes": [
     "alpha",
@@ -27,7 +25,7 @@ WRITE_OK_TEXT = """
 
 def test_write_ok(tmp_path):
     status_file = tmp_path.joinpath("dummy")
-    heal.util.write(status_file, ["alpha", "beta"], "ok", datetime.datetime.utcfromtimestamp(0))
+    heal.util.write(status_file, ["alpha", "beta"], "ok", 0)
     assert status_file.read_text() == WRITE_OK_TEXT
 
 

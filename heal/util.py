@@ -1,8 +1,10 @@
-import datetime
 import json
 import subprocess
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import List
+
+import time
 
 ENCODING = "utf-8"
 SP_KWARGS = {"shell": True, "stdout": subprocess.PIPE, "stderr": subprocess.STDOUT, "encoding": ENCODING}  # common parameters to subprocess commands
@@ -23,11 +25,28 @@ def print_output(command: str, result: str, output: List[str], prefix: str) -> N
         print(prefix, "output:", line.rstrip())
 
 
-def write(status_file: Path, current_modes, status, utc=None):
-    if utc is None:  # fix: can't put directly datetime.datetime.utcnow() as a default value (see https://stackoverflow.com/questions/1132941)
-        utc = datetime.datetime.utcnow()
+def write(file: Path, modes: List[str], status: str, timestamp: float = None) -> None:
+    """
+    Writes the given timestamp, status and modes into a JSON file.
 
-    status_file.write_text(json.dumps({"utc": utc.isoformat(), "status": status, "modes": current_modes}, indent=2), encoding=ENCODING)
+    :param file: Path to the target file
+    :param modes: list of modes
+    :param status: status
+    :param timestamp: timestamp, defaults to the current timestamp
+    """
+
+    if timestamp is None:  # fix: can't put directly time.time() as a default value (see https://stackoverflow.com/questions/1132941)
+        timestamp = time.time()
+
+    file.write_text(
+        json.dumps(
+            {
+                "timestamp": datetime.fromtimestamp(timestamp, timezone.utc).isoformat(),
+                "status": status,
+                "modes": modes
+            }, indent=2
+        ), encoding=ENCODING  # todo: can't seem to be able to properly test the encoding
+    )
 
 
 def ignore(*_, **__):

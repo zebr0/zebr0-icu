@@ -128,14 +128,14 @@ def test_ok(tmp_path, capsys):
     time.sleep(0.1)
     status_2 = json.loads(status_file.read_text())
     assert status_2.get("status") == "ok"
-    assert datetime.datetime.fromisoformat(status_2.get("utc")) > datetime.datetime.fromisoformat(status_1.get("utc"))
+    assert datetime.datetime.fromisoformat(status_2.get("timestamp")) > datetime.datetime.fromisoformat(status_1.get("timestamp"))
 
     # second problem
     flag.touch()
     time.sleep(0.2)
     status_3 = json.loads(status_file.read_text())
     assert status_3.get("status") == "ok"
-    assert datetime.datetime.fromisoformat(status_3.get("utc")) > datetime.datetime.fromisoformat(status_2.get("utc"))
+    assert datetime.datetime.fromisoformat(status_3.get("timestamp")) > datetime.datetime.fromisoformat(status_2.get("timestamp"))
 
     # normal interruption
     event.set()
