@@ -2,7 +2,7 @@ import json
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import List
+from typing import List, Any
 
 import time
 
@@ -49,7 +49,11 @@ def write(file: Path, modes: List[str], status: str, timestamp: float = None) ->
     )
 
 
-def ignore(*_, **__):
+def ignore(*_: Any, **__: Any) -> None:
+    """
+    Dummy function that does absolutely nothing.
+    """
+
     pass
 
 
