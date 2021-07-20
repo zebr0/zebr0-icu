@@ -57,8 +57,13 @@ def ignore(*_: Any, **__: Any) -> None:
     pass
 
 
-def is_ko(status_file: Path):
+def is_ko(file: Path) -> bool:
+    """
+    :param file: Path to the target file
+    :return: whether the file explicitely mentions a "ko" status or not
+    """
+
     try:
-        return json.loads(status_file.read_text(encoding=ENCODING)).get("status") == "ko"
+        return json.loads(file.read_text(encoding=ENCODING)).get("status") == "ko"
     except (OSError, ValueError):
         return False
